@@ -132,13 +132,45 @@ def assignWorkerToStation(totalWorker, totalStation):
         workerPerStationList = [0] * totalStation
         remainingWorkers = totalWorker
 
-    # Distribute remaining workers random but even
+    # Distribute remaining workers randomly
+    availableStations = list(range(totalStation))  # List of available stations
+    random.shuffle(availableStations)  # Shuffle the station indices randomly
+
+    # Distribute remaining workers evenly among available stations
     for i in range(remainingWorkers):
-        randomInt = random.randint(0, totalStation - 1)
-        workerPerStationList[randomInt] += 1
+        stationIndex = availableStations[i % len(availableStations)]
+        workerPerStationList[stationIndex] += 1
+
+    # Random for the second time
+    random.shuffle(workerPerStationList)
 
     return workerPerStationList
 
+def calculateDummyCycleTime(listTaskTime, station):
+    # Find the maximum time in list
+    maxValue = listTaskTime[0][0]
+    for i in range(len(listTaskTime)):
+        for j in range(len(listTaskTime[0])):
+            if (maxValue < listTaskTime[i][j]):
+                maxValue = listTaskTime[i][j]
+    val1 = (2 * maxValue) / station
+    if (val1 > maxValue) :
+        return val1
+    else :
+        return maxValue
+
+def calculateProbabilityCumulative(globalFeromon, zAlfa, OFV, zBeta):
+    arrProbability = []
+    arrCumulative = []
+
+    for i in range():
+        for j in range():
+            arrProbability[i][j] = ((globalFeromon**zAlfa) * ((1/OFV[i][[j]])**0.4))
+
+
+    return arrProbability, arrCumulative
+
+# ====== HELPER ======
 def printInfoWorker(workerList):
     print()
     for i in range (len(workerList)):
@@ -147,7 +179,7 @@ def printInfoWorker(workerList):
 
 # Constant
 Task = 9
-Worker = 5
+Worker = 10
 Station = 3
 
 fileName = input("Masukkan nama file: ")
@@ -158,22 +190,41 @@ taskTimeData = combineTaskProducts((Data))
 
 # Assign jumlah worker ke stasiun
 listWorker = assignWorkerToStation(Worker, Station)
-
+printInfoWorker(listWorker)
 
 # Tetapkan parameter
 colony = int(input("Masukkan jumlah koloni: "))
 iteration = int(input("Masukkan jumlah iterasi: "))
 globalFeromon = int(input("Masukkan jumlah global feromon: "))
-zAlpha = 0.7
-zBeta = 0.4
+zAlfa = float(input("Masukkan nilai zAlfa: "))
+zBeta = float(input("Masukkan nilai zBeta: "))
 
-# printInfoWorker(listWorker)
-# Alokasi Task dan Resource
+# Alokasi Task dan Resource (Worker)
 startTime = time.perf_counter()
-# -- Process
+dummyCT = calculateDummyCycleTime(taskTimeData, Station)
 
+# ------------------------------------BELUM MASIH DEVELOPMENT---------------------
+# Penciptaan list A dan B
+# listA = [[1, 2, 3, 4, 14, 19, 25, 61, 63], [5]
+listA = [[1,2,3,4], [5], [6,7], [8], [9]]
+listB = [] # List a yang memenuhi persyaratan waktu, worker
+# Tercipta di dalam looping
+
+# Time[i] = taskTimeData[i][j]
+# OFW = waktu mulai + Time
+
+# for i in range (iteration):
+#     for m in range (colony):
+#         for q in range (task):
+#             # Pengisian array time
+#             Time = []
+#             for i in range ()
+            
+random_number = random.random()
 
 endTime = time.perf_counter()
+
+# ----------------------------------------------------------------------------------
 
 
 # Print Hasil
@@ -181,7 +232,7 @@ for i in range (Station):
     print()
     print("========== STASIUN {} ==========".format(i+1))
     print("Task             : ")
-    print("Resource         : ")
+    print("Worker         : ")
     print("Waktu model 1    : ")
     print("Waktu model 2    : ")
     print("Total waktu      : ")
@@ -189,7 +240,6 @@ for i in range (Station):
 
 print()
 print("Cycle time solusi terbaik adalah ")
-print("Biaya total solusi terbaik adalah USD ")
 
 print()
 print("Waktu untuk run program: {} detik".format(endTime-startTime))
