@@ -2,6 +2,7 @@ import csv
 import random
 import time
 import networkx as nx
+import numpy as np
 import matplotlib.pyplot as plt
 
 tasks = {
@@ -170,6 +171,33 @@ def calculateProbabilityCumulative(globalFeromon, zAlfa, OFV, zBeta):
 
     return arrProbability, arrCumulative
 
+def checkPrecedence(precedence_diagram, listVisited):
+    tasks_to_check = []
+
+    for key, value in precedence_diagram.items():
+        if all(dep in listVisited for dep in value):
+            tasks_to_check.append(key)
+
+    # Hapus elemen pada tasks to check jika element tersebut terdapat pada list visited
+    tasks_to_check = [task for task in tasks_to_check if task not in listVisited]
+
+    return tasks_to_check
+
+def checkTimeWorker(listTask, dummyCT, listTimeData, totalWorker):
+    tasks_to_check = np.empty(0, dtype=[('task', int), ('worker', int)])
+    totalTime = 0
+
+    for task in listTask:
+        for i in range(totalWorker):
+            print(totalTime)
+            time = listTimeData[task][i]
+            if (time + totalTime <= dummyCT):
+                inp = (task, i+1)
+                tasks_to_check = np.concatenate((tasks_to_check, np.array([inp], dtype=tasks_to_check.dtype)))
+        totalTime += time
+
+    return tasks_to_check
+
 # ====== HELPER ======
 def printInfoWorker(workerList):
     print()
@@ -190,35 +218,35 @@ taskTimeData = combineTaskProducts((Data))
 
 # Assign jumlah worker ke stasiun
 listWorker = assignWorkerToStation(Worker, Station)
-printInfoWorker(listWorker)
 
 # Tetapkan parameter
-colony = int(input("Masukkan jumlah koloni: "))
-iteration = int(input("Masukkan jumlah iterasi: "))
-globalFeromon = int(input("Masukkan jumlah global feromon: "))
-zAlfa = float(input("Masukkan nilai zAlfa: "))
-zBeta = float(input("Masukkan nilai zBeta: "))
+# colony = int(input("Masukkan jumlah koloni: "))
+# iteration = int(input("Masukkan jumlah iterasi: "))
+# globalFeromon = int(input("Masukkan jumlah global feromon: "))
+# zAlfa = float(input("Masukkan nilai zAlfa: "))
+# zBeta = float(input("Masukkan nilai zBeta: "))
 
 # Alokasi Task dan Resource (Worker)
 startTime = time.perf_counter()
 dummyCT = calculateDummyCycleTime(taskTimeData, Station)
 
-# ------------------------------------BELUM MASIH DEVELOPMENT---------------------
+
 # Penciptaan list A dan B
-# listA = [[1, 2, 3, 4, 14, 19, 25, 61, 63], [5]
-listA = [[1,2,3,4], [5], [6,7], [8], [9]]
-listB = [] # List a yang memenuhi persyaratan waktu, worker
+firstTask = [0]
+listA = checkPrecedence(tasks, firstTask)
+listB = checkTimeWorker(listA, dummyCT, taskTimeData, Worker) # List B + Worker
 # Tercipta di dalam looping
 
-# Time[i] = taskTimeData[i][j]
-# OFW = waktu mulai + Time
+# # ------------------------------------BELUM MASIH DEVELOPMENT---------------------
+# # Time[i] = taskTimeData[i][j]
+# # OFW = waktu mulai + Time
 
-# for i in range (iteration):
-#     for m in range (colony):
-#         for q in range (task):
-#             # Pengisian array time
-#             Time = []
-#             for i in range ()
+# # for i in range (iteration):
+# #     for m in range (colony):
+# #         for q in range (task):
+# #             # Pengisian array time
+# #             Time = []
+# #             for i in range ()
             
 random_number = random.random()
 
