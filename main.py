@@ -189,14 +189,16 @@ def checkTimeWorker(listTask, dummyCT, listTimeData, totalWorker):
 
     for task in listTask:
         for i in range(totalWorker):
-            print(totalTime)
             time = listTimeData[task][i]
             if (time + totalTime <= dummyCT):
                 inp = (task, i+1)
                 tasks_to_check = np.concatenate((tasks_to_check, np.array([inp], dtype=tasks_to_check.dtype)))
         totalTime += time
 
-    return tasks_to_check
+    # Menghilangkan koma dan spasi di antara elemen tuple
+    tasks_to_check_str = str(tasks_to_check).replace(", ", " ")
+
+    return tasks_to_check_str
 
 # ====== HELPER ======
 def printInfoWorker(workerList):
@@ -206,36 +208,41 @@ def printInfoWorker(workerList):
     print()
 
 # Constant
-Task = 9
-Worker = 10
-Station = 3
+nTask = 78
+nWorker = 41
+nStation = 17
 
 fileName = input("Masukkan nama file: ")
 Data = read_data(fileName)
 
 # Combine task time for 2 produk
 taskTimeData = combineTaskProducts((Data))
+print(taskTimeData)
 
 # Assign jumlah worker ke stasiun
-listWorker = assignWorkerToStation(Worker, Station)
+listWorker = assignWorkerToStation(nWorker, nStation)
 
 # Tetapkan parameter
-# colony = int(input("Masukkan jumlah koloni: "))
+colony = int(input("Masukkan jumlah koloni: "))
 # iteration = int(input("Masukkan jumlah iterasi: "))
-# globalFeromon = int(input("Masukkan jumlah global feromon: "))
+globalFeromon = int(input("Masukkan jumlah global feromon: "))
 # zAlfa = float(input("Masukkan nilai zAlfa: "))
 # zBeta = float(input("Masukkan nilai zBeta: "))
 
 # Alokasi Task dan Resource (Worker)
 startTime = time.perf_counter()
-dummyCT = calculateDummyCycleTime(taskTimeData, Station)
+dummyCT = calculateDummyCycleTime(taskTimeData, nStation)
+print("Dummy CT:", dummyCT)
 
 
 # Penciptaan list A dan B
 firstTask = [0]
 listA = checkPrecedence(tasks, firstTask)
-listB = checkTimeWorker(listA, dummyCT, taskTimeData, Worker) # List B + Worker
-# Tercipta di dalam looping
+# print("List A : ")
+# print(listA)
+listB = checkTimeWorker(listA, dummyCT, taskTimeData, nWorker) # List B + Worker
+# print("List B : ")
+# print(listB)
 
 # # ------------------------------------BELUM MASIH DEVELOPMENT---------------------
 # # Time[i] = taskTimeData[i][j]
@@ -247,7 +254,16 @@ listB = checkTimeWorker(listA, dummyCT, taskTimeData, Worker) # List B + Worker
 # #             # Pengisian array time
 # #             Time = []
 # #             for i in range ()
-            
+
+# ---
+rute = np.zeros((colony, nTask))
+# print("RUTE : ")
+# print(rute)
+
+pheromone = globalFeromon*np.ones((nTask, nTask))
+# print("PHEROMONE : ")
+# print(pheromone)
+
 random_number = random.random()
 
 endTime = time.perf_counter()
@@ -256,11 +272,11 @@ endTime = time.perf_counter()
 
 
 # Print Hasil
-for i in range (Station):
+for i in range (nStation):
     print()
     print("========== STASIUN {} ==========".format(i+1))
     print("Task             : ")
-    print("Worker         : ")
+    print("Worker           : ")
     print("Waktu model 1    : ")
     print("Waktu model 2    : ")
     print("Total waktu      : ")
