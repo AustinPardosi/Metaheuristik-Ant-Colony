@@ -90,17 +90,30 @@ def checkPrecedence(precedence_diagram, listVisited):
 
     return tasks_to_check
 
-def checkTimeWorker(listTask, dummyCT, listTimeData, totalWorker):
+def checkTimeWorker(listTask, dummyCT, listTimeData, totalWorker, visitedStation1, station2, station3, listWorker):
     tasks_to_check = np.empty(0, dtype=[('task', int), ('worker', int)])
 
     for task in listTask:
         for i in range(totalWorker):
             time = listTimeData[task][i]
-            if (time <= dummyCT):
+            if time <= dummyCT:
                 inp = (task, i+1)
                 tasks_to_check = np.concatenate((tasks_to_check, np.array([inp], dtype=tasks_to_check.dtype)))
 
+    if len(visitedStation1) >= listWorker[0]:
+        valid_workers = [worker[1] for worker in visitedStation1]
+        tasks_to_check = np.array([task for task in tasks_to_check if task[1] in valid_workers], dtype=tasks_to_check.dtype)
+
     return tasks_to_check
+
+
+
+# def updateListB(listB, chosenTask):
+#     updatedListB = []
+#     for item in listB:
+#         if (item[0] != chosenTask) :
+#             updatedListB.append(item)
+#     return updatedListB
 
 def calculateUpperProbability(gf, zAlpha, zBeta, OFV):
     upper = (gf**zAlpha)*((1/OFV)**zBeta)
@@ -125,14 +138,16 @@ def calculateOFV(listB, taskTimeData, sumTime):
 
 def calculateProb(listB, globalFeromon, zAlfa, zBeta):
     tempProb = []
-    sumUpperProbability = 0
+    sumUpperProbability = 0.0
     for i in range(len(listB)):
         x = calculateUpperProbability(globalFeromon, zAlfa, zBeta, OFV[i])
+        x = round(x, 4)
         tempProb.append(x)
         sumUpperProbability += x
     Prob = []
     for i in range(len(listB)):
         x = tempProb[i]/sumUpperProbability
+        x = round(x, 4)
         Prob.append(x)
     return Prob
 
@@ -172,12 +187,23 @@ def updateData(listData, chosenTask, chosenWorker, time):
             updatedData.append((check, newOFV, data[2], data[3]))
     return updatedData
 
-def updateListB(listB, chosenTask):
-    updatedListB = []
-    for item in listB:
-        if (item[0] != chosenTask) :
-            updatedListB.append(item)
-    return updatedListB
+def updateTaskTimeData(listTaskTime, chosenWorker, time):
+    for i in range(len(listTaskTime)):
+        for j in range(len(listTaskTime[0])):
+            if (j == chosenWorker - 1):
+                listTaskTime[i][j] += time
+
+def checkStation(Station1, Station2, Station3, listWorker):
+    result = 0
+    if (len(Station1) < listWorker[0]):
+        result = 1
+    elif (len(Station2) < listWorker[1]):
+        result = 2
+    elif (len(Station3) < listWorker[2]):
+        result = 3
+    return result
+
+
 
 # ========== HELPER ==========
 def printInfoWorker(workerList):
@@ -199,6 +225,9 @@ taskTimeData = combineTaskProducts((Data))
 
 # Assign jumlah worker ke stasiun
 listWorker = assignWorkerToStation(nWorker, nStation)
+nMaxStation1 = listWorker[0]
+nMaxStation2 = listWorker[1]
+nMaxStation3 = listWorker[2]
 
 # Tetapkan parameter
 colony = int(input("Masukkan jumlah koloni: "))
@@ -232,7 +261,7 @@ for i in range (iteration):
         listA = checkPrecedence(tasks, firstTask)
         print("List A : ", end="")
         print(listA)
-        listB = checkTimeWorker(listA, dummyCT, taskTimeData, nWorker) # List B + Worker
+        listB = checkTimeWorker(listA, dummyCT, taskTimeData, nWorker, Station1, Station2, Station3, listWorker) # List B + Worker
         print("List B : ", end="")
         print(listB)
 
@@ -248,6 +277,8 @@ for i in range (iteration):
         # Saving Data
         Data_ = saveData(listB, OFV, Prob, Cumulative)
         for q in range (nTask):
+            copyTaskTime = taskTimeData
+            print("=============================================")
             print("\nData: ", end="")
             print(Data_)
             print(len(Data_))
@@ -269,13 +300,16 @@ for i in range (iteration):
             print(listA)
 
             # Update listB
-            listB = updateListB(listB, chosenTask)
+            updateTaskTimeData(copyTaskTime, chosenWorker, tempTime)
+            listB = checkTimeWorker(listA, dummyCT, copyTaskTime, nWorker, Station1, Station2, Station3, listWorker)
             print("Update List B : ", end="")
             print(listB)
             Data_ = updateData(Data_, chosenTask, chosenWorker, tempTime)
+            print("Update Data: ")
+            print(Data_)
 
             # Update OFV
-            OFV = calculateOFV(listB, taskTimeData, sumTime)
+            OFV = calculateOFV(listB, copyTaskTime, sumTime)
 
             # Update Prob
             Prob = calculateProb(listB, globalFeromon, zAlfa, zBeta)
@@ -284,7 +318,7 @@ for i in range (iteration):
             Cumulative = calculateCumulative(Prob)
 
             # Update Data
-            Data_ = saveData(listB, OFV, Prob, Cumulative)
+            # Data_ = saveData(listB, OFV, Prob, Cumulative)
 
             index += 1
 
