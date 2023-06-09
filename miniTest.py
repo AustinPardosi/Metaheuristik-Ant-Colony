@@ -90,44 +90,34 @@ def checkPrecedence(precedence_diagram, listVisited):
 
     return tasks_to_check
 
-def checkTimeWorker(listTask, dummyCT, listTimeData, totalWorker, visitedStation1, station2, station3, listWorker):
+def checkTimeWorker(listTask, dummyCT, listTimeData, totalWorker, visitedStation, listWorker, restrictedList, idxStation):
     tasks_to_check = np.empty(0, dtype=[('task', int), ('worker', int)])
+    result = np.empty(0, dtype=[('task', int), ('worker', int)])
 
     for task in listTask:
         for i in range(totalWorker):
-            time = listTimeData[task][i]
+            time = listTimeData[task-1][i]
             if time <= dummyCT:
                 inp = (task, i+1)
                 tasks_to_check = np.concatenate((tasks_to_check, np.array([inp], dtype=tasks_to_check.dtype)))
 
-    if len(visitedStation1) >= listWorker[0]:
-        valid_workers = [worker[1] for worker in visitedStation1]
+    print("Panjang list Station = ", end="")
+    print(len(visitedStation))
+    print("Max : ", end="")
+    print(listWorker[idxStation])
+    if len(visitedStation) >= listWorker[idxStation]:
+        valid_workers = [worker[1] for worker in visitedStation]
         tasks_to_check = np.array([task for task in tasks_to_check if task[1] in valid_workers], dtype=tasks_to_check.dtype)
 
-    return tasks_to_check
+    for task in tasks_to_check:
+        if task[1] not in restrictedList:
+            result = np.append(result, task)
 
-
-
-# def updateListB(listB, chosenTask):
-#     updatedListB = []
-#     for item in listB:
-#         if (item[0] != chosenTask) :
-#             updatedListB.append(item)
-#     return updatedListB
+    return result
 
 def calculateUpperProbability(gf, zAlpha, zBeta, OFV):
     upper = (gf**zAlpha)*((1/OFV)**zBeta)
     return upper
-
-def chooseProbability(random, listData):
-    min_diff = 1
-    chosen = None
-    for item in listData:
-        if (abs(item[3] - random) < min_diff):
-            min_diff = abs(item[3] - random)
-            chosen = item[0]
-    time = item[1]
-    return chosen, time
 
 def calculateOFV(listB, taskTimeData, sumTime):
     OFV = []
@@ -155,7 +145,8 @@ def calculateCumulative(Prob):
     Cumulative = []
     Cumulative.append(Prob[0])
     for i in range(1, len(listB)):
-        tempCumulative = Cumulative[i-1] + Prob[i]
+        x = Cumulative[i-1] + Prob[i]
+        tempCumulative = round(x, 4)
         Cumulative.append(tempCumulative)
     return Cumulative
 
@@ -166,13 +157,12 @@ def saveData(listB, OFV, Prob, Cumulative):
     return Data_
 
 def chooseProbability(random, listData):
-    minDiff = 1
     chosen = None
     for data in listData:
-        diff = abs(data[3] - random)
-        if diff < minDiff:
-            minDiff = diff
-            chosen = data
+        diff = random - data[3]
+        chosen = data
+        if diff < 0:
+            break
     return chosen[0], chosen[1]
 
 def updateData(listData, chosenTask, chosenWorker, time):
@@ -187,11 +177,13 @@ def updateData(listData, chosenTask, chosenWorker, time):
             updatedData.append((check, newOFV, data[2], data[3]))
     return updatedData
 
-def updateTaskTimeData(listTaskTime, chosenWorker, time):
+def updateTaskTimeData(listTaskTime, chosenWorker, time, taskTimeData):
     for i in range(len(listTaskTime)):
         for j in range(len(listTaskTime[0])):
-            if (j == chosenWorker - 1):
-                listTaskTime[i][j] += time
+            if j == chosenWorker - 1:
+                listTaskTime[i][j] = round(taskTimeData[i][j],2) + time
+    return listTaskTime
+
 
 def checkStation(Station1, Station2, Station3, listWorker):
     result = 0
@@ -203,8 +195,21 @@ def checkStation(Station1, Station2, Station3, listWorker):
         result = 3
     return result
 
+def searchMaxTime(currStation, chosenWorker):
+    max = 0
+    for info in currStation:
+        if ((info[1] == chosenWorker) and (info[2] > max)):
+            max = info[2]
+    return max
 
-
+def restrictedWorker(listStation, currIdxStation):
+    restricted = set()
+    for i in range(currIdxStation):
+        for data in listStation[i]:
+            x = data[1]
+            restricted.add(x)
+    return list(restricted)
+            
 # ========== HELPER ==========
 def printInfoWorker(workerList):
     print()
@@ -224,7 +229,8 @@ Data = read_data(fileName)
 taskTimeData = combineTaskProducts((Data))
 
 # Assign jumlah worker ke stasiun
-listWorker = assignWorkerToStation(nWorker, nStation)
+# listWorker = assignWorkerToStation(nWorker, nStation)
+listWorker = [2,1,2]
 nMaxStation1 = listWorker[0]
 nMaxStation2 = listWorker[1]
 nMaxStation3 = listWorker[2]
@@ -239,7 +245,6 @@ zBeta = float(input("Masukkan nilai zBeta: "))
 # Alokasi Task dan Resource (Worker)
 startTime = time.perf_counter()
 dummyCT = calculateDummyCycleTime(taskTimeData, nStation)
-# print("Dummy CT :", dummyCT)
 
 
 # Penciptaan list A dan B
@@ -253,6 +258,10 @@ Station3 = []
 
 # --- update
 temp = []
+visitedStation = [Station1, Station2, Station3]
+idxStation = 0
+restricted = []
+newStation = False
 for i in range (iteration):
     for m in range (colony):
         sumTime = 0
@@ -261,7 +270,9 @@ for i in range (iteration):
         listA = checkPrecedence(tasks, firstTask)
         print("List A : ", end="")
         print(listA)
-        listB = checkTimeWorker(listA, dummyCT, taskTimeData, nWorker, Station1, Station2, Station3, listWorker) # List B + Worker
+        if (len(listA)==0 and len(listB)==0):
+            break
+        listB = checkTimeWorker(listA, dummyCT, taskTimeData, nWorker, visitedStation[idxStation], listWorker, restricted, idxStation) # List B + Worker
         print("List B : ", end="")
         print(listB)
 
@@ -276,23 +287,23 @@ for i in range (iteration):
 
         # Saving Data
         Data_ = saveData(listB, OFV, Prob, Cumulative)
+        print("\nData: ", end="")
+        print(Data_)
+        print(len(Data_))
         for q in range (nTask):
             copyTaskTime = taskTimeData
             print("=============================================")
-            print("\nData: ", end="")
-            print(Data_)
-            print(len(Data_))
             # random_decimal = random.random()
             random_decimal = randd[index]
             print("\nRandom desimal: ", end="")
             print(random_decimal)
             chosen, tempTime = chooseProbability(random_decimal, Data_)
             print("Yang terpilih: ", end="")
-            print(chosen)
+            print(chosen, tempTime)
             chosenTask = chosen[0]
             chosenWorker = chosen[1]
             firstTask.append(chosenTask)
-            Station1.append((chosenTask, chosenWorker, tempTime))
+            visitedStation[idxStation].append((chosenTask, chosenWorker, tempTime))
 
             # Update listA
             listA = checkPrecedence(tasks, firstTask)
@@ -300,16 +311,31 @@ for i in range (iteration):
             print(listA)
 
             # Update listB
-            updateTaskTimeData(copyTaskTime, chosenWorker, tempTime)
-            listB = checkTimeWorker(listA, dummyCT, copyTaskTime, nWorker, Station1, Station2, Station3, listWorker)
+            currStation = Station1
+            copyTaskTime = updateTaskTimeData(copyTaskTime, chosenWorker, tempTime, combineTaskProducts((Data)))
+            listB = checkTimeWorker(listA, dummyCT, copyTaskTime, nWorker, visitedStation[idxStation],  listWorker, restricted, idxStation)
+            print("List Sebelum List B: ")
+            print(listB)
+            if (len(listB) == 0) :  #Ganti Stasiun
+                newStation = False
+                print("Ganti Stasiun karena A")
+                idxStation += 1
+                copyTaskTime = combineTaskProducts((Data))
+                restrictedList = restrictedWorker(visitedStation, idxStation)
+                print(restrictedList)
+                for worker in restrictedList:
+                    restricted.append(worker)
+                if (len(listA)==0 and len(listB)==0):
+                    break
+                listB = checkTimeWorker(listA, dummyCT, copyTaskTime, nWorker, visitedStation[idxStation], listWorker, restricted, idxStation)
+
             print("Update List B : ", end="")
             print(listB)
-            Data_ = updateData(Data_, chosenTask, chosenWorker, tempTime)
-            print("Update Data: ")
-            print(Data_)
 
             # Update OFV
-            OFV = calculateOFV(listB, copyTaskTime, sumTime)
+            OFV = calculateOFV(listB, copyTaskTime, 0)
+            print("\nUpdate OFV = ")
+            print(OFV)
 
             # Update Prob
             Prob = calculateProb(listB, globalFeromon, zAlfa, zBeta)
@@ -318,13 +344,19 @@ for i in range (iteration):
             Cumulative = calculateCumulative(Prob)
 
             # Update Data
-            # Data_ = saveData(listB, OFV, Prob, Cumulative)
+            Data_ = saveData(listB, OFV, Prob, Cumulative)
+            print("\nUpdate Data: ", end="")
+            print(Data_)
+            print("")
 
             index += 1
 
 print("\nStation: ")
+print("Stasiun 1 = ", end="")
 print(Station1)
+print("Stasiun 2 = ", end="")
 print(Station2)
+print("Stasiun 3 = ", end="")
 print(Station3)
 # ---
 rute = np.zeros((colony, nTask))
@@ -338,8 +370,6 @@ random_number = random.random()
 endTime = time.perf_counter()
 
 # ----------------------------------------------------------------------------------
-
-
 # Print Hasil
 for i in range (nStation):
     print()
