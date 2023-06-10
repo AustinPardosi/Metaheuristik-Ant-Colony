@@ -262,6 +262,16 @@ visitedStation = [Station1, Station2, Station3]
 idxStation = 0
 restricted = []
 newStation = False
+
+# Buat matriks kosong
+resultMatrix = []
+# for i in range(nTask*2):
+#     row = []
+#     for j in range(8):
+#         row.append(0)
+#     resultMatrix.append(row)
+
+
 for i in range (iteration):
     for m in range (colony):
         sumTime = 0
@@ -350,7 +360,40 @@ for i in range (iteration):
             print("")
 
             index += 1
+        
+        # Mengisi result matrix
+        tempIdx = 0
+        while (tempIdx < 3):
+            row = []  # Membuat objek row baru di setiap iterasi
+            stat = visitedStation[tempIdx]
+            dataAwal = combineTaskProducts(Data)
+            for task in stat:
+                for j in range(2):
+                    statKerja = tempIdx + 1
+                    tempTask = task[0]
+                    tempWorker = task[1]
+                    tempProduct = j+1
+                    waktuSelesai = round(task[2], 4)
+                    waktuProses = round(dataAwal[tempTask-1][tempWorker-1], 4)
+                    waktuMulai = round(waktuSelesai - waktuProses, 4)
+                    ctAktual = waktuSelesai
+                    row.append((statKerja, tempTask, tempWorker, tempProduct, waktuProses, waktuMulai, waktuSelesai, ctAktual))
+            tempIdx += 1
+            resultMatrix.append(row)
 
+print("\nResult Matriks: ")
+for i in range(len(resultMatrix)):
+    for j in range(len(resultMatrix[i])):
+        print(resultMatrix[i][j])
+
+print("\nCT Aktual: ",end="")
+ctAktualTemp = 0
+for i in range(len(resultMatrix)):
+    for j in range(len(resultMatrix[i])):
+        check = resultMatrix[i][j]
+        if (ctAktualTemp < check[7]):
+            ctAktualTemp = check[7]
+print(ctAktualTemp)
 print("\nStation: ")
 print("Stasiun 1 = ", end="")
 print(Station1)
@@ -358,14 +401,39 @@ print("Stasiun 2 = ", end="")
 print(Station2)
 print("Stasiun 3 = ", end="")
 print(Station3)
+
 # ---
-rute = np.zeros((colony, nTask))
-print(rute)
+# rute = np.zeros((colony, nTask))
+# print(rute)
 
-pheromone = globalFeromon*np.ones((nTask, nTask))
-print(pheromone)
+# pheromone = globalFeromon*np.ones((nTask, nTask))
+# print(pheromone)
 
-random_number = random.random()
+pheromone_matrices = []  # Daftar untuk menyimpan matriks pheromone
+
+for _ in range(nWorker):
+    pheromone = globalFeromon * np.ones((nTask, nTask))
+    pheromone_matrices.append(pheromone)
+
+
+# Update Global Feromon
+for i, pheromone in enumerate(pheromone_matrices):
+    for j in range(len(resultMatrix)):
+        for k in range(len(resultMatrix[i])):
+            check = resultMatrix[j][k]
+            if(i == check[2]):
+                pheromone[check[1]][j] += globalFeromon 
+
+
+# Cetak matriks-matriks pheromone
+for i, pheromone in enumerate(pheromone_matrices):
+    print(f"Matriks Pheromone-{i+1}:")
+    print(pheromone)
+    print()
+
+
+
+# random_number = random.random()
 
 endTime = time.perf_counter()
 
@@ -374,12 +442,19 @@ endTime = time.perf_counter()
 for i in range (nStation):
     print()
     print("========== STASIUN {} ==========".format(i+1))
-    print("Task             : ")
-    print("Worker           : ")
-    print("Waktu model 1    : ")
-    print("Waktu model 2    : ")
-    print("Total waktu      : ")
-    print("Cycle time       : ")
+    print("Task             : ", end="")
+    for task in (visitedStation[i]):
+        temp = task[0]
+        print("Task " + str(temp) + " ", end="     ")
+    print("\nResource         : ", end="")
+    for task in (visitedStation[i]):
+        temp = task[1]
+        print("Worker " + str(temp) + " ", end="   ")
+    print("\nWaktu model 1    : ")
+
+    print("\nWaktu model 2    : ")
+    print("\nTotal waktu      : ")
+    print("\nCycle time       : ")
 
 print()
 print("Cycle time solusi terbaik adalah ")
