@@ -108,10 +108,10 @@ def checkTimeWorker(listTask, dummyCT, listTimeData, totalWorker, visitedStation
                 inp = (task, i+1)
                 tasks_to_check = np.concatenate((tasks_to_check, np.array([inp], dtype=tasks_to_check.dtype)))
 
-    print("Panjang list Station = ", end="")
-    print(len(visitedStation))
-    print("Max : ", end="")
-    print(listWorker[idxStation])
+    # print("Panjang list Station = ", end="")
+    # print(len(visitedStation))
+    # print("Max : ", end="")
+    # print(listWorker[idxStation])
     if len(visitedStation) >= listWorker[idxStation]:
         valid_workers = [worker[1] for worker in visitedStation]
         tasks_to_check = np.array([task for task in tasks_to_check if task[1] in valid_workers], dtype=tasks_to_check.dtype)
@@ -237,10 +237,10 @@ def searchAddTime(currStation, listA, tasks):
         for stat in currStation:
             x = stat[0]
             visitedTask.append(x)
-        print("Visited Task = ", end="")
-        print(visitedTask)
+        # print("Visited Task = ", end="")
+        # print(visitedTask)
         check = check_requirements(tasks, listA[0], visitedTask)
-        print(check)
+        # print(check)
         if (check):
             for stat in currStation:
                 if (addTime < stat[2]):
@@ -319,38 +319,38 @@ for i in range (iteration):
         listA, newAddedTask = checkPrecedence(tasks, firstTask, posVisitTask)
         if (len(listA)==0 and len(listB)==0):
             break
-        print("List A : ", end="")
-        print(listA)
+        # print("List A : ", end="")
+        # print(listA)
         listB = checkTimeWorker(listA, dummyCT, taskTimeData, nWorker, visitedStation[idxStation], listWorker, restricted, idxStation) # List B + Worker
-        print("List B : ", end="")
-        print(listB)
+        # print("List B : ", end="")
+        # print(listB)
 
         # Calculating OFV
         OFV = calculateOFV(listB, taskTimeData)
 
         # Calculating prob
         Prob = calculateProb(listB, zAlfa, zBeta, 0, pheromone_matrices)
-        print("========================================")
-        print(Prob)
+        # print("========================================")
+        # print(Prob)
 
         # Calculating cumulative
         Cumulative = calculateCumulative(Prob)
 
         # Saving Data
         Data_ = saveData(listB, OFV, Prob, Cumulative)
-        print("\nData: ", end="")
-        print(Data_)
-        print(len(Data_))
+        # print("\nData: ", end="")
+        # print(Data_)
+        # print(len(Data_))
         for q in range (nTask):
             copyTaskTime = taskTimeData
-            print("=============================================")
+            # print("=============================================")
             # random_decimal = random.random()
             random_decimal = randd[index]
-            print("\nRandom desimal: ", end="")
-            print(random_decimal)
+            # print("\nRandom desimal: ", end="")
+            # print(random_decimal)
             chosen, tempTime = chooseProbability(random_decimal, Data_)
-            print("Yang terpilih: ", end="")
-            print(chosen, tempTime)
+            # print("Yang terpilih: ", end="")
+            # print(chosen, tempTime)
             chosenTask = chosen[0]
             chosenWorker = chosen[1]
             firstTask.append(chosenTask)
@@ -358,8 +358,8 @@ for i in range (iteration):
 
             # Update listA
             listA, newAddedTask = checkPrecedence(tasks, firstTask, posVisitTask)
-            print("Update List A : ", end="")
-            print(listA)
+            # print("Update List A : ", end="")
+            # print(listA)
 
             # Update listB
             currStation = visitedStation[idxStation]
@@ -372,35 +372,35 @@ for i in range (iteration):
                 conditionList = []
                 addTime = 0
 
-            print("\npersyaratan :")
-            print(newAddedTask)
-            print(conditionList)
-            print(addTime)
+            # print("\npersyaratan :")
+            # print(newAddedTask)
+            # print(conditionList)
+            # print(addTime)
             copyTaskTime = updateTaskTimeData(copyTaskTime, chosenTask, chosenWorker, addTime, tempTime, combineTaskProducts((Data)), newAddedTask)
             listB = checkTimeWorker(listA, dummyCT, copyTaskTime, nWorker, visitedStation[idxStation],  listWorker, restricted, idxStation)
-            print("List Sebelum List B: ")
-            print(listB)
+            # print("List Sebelum List B: ")
+            # print(listB)
             if (len(listB) == 0) :  #Ganti Stasiun
-                print("Ganti Stasiun karena A")
+                # print("Ganti Stasiun karena A")
                 idxStation += 1
                 copyTaskTime = combineTaskProducts((Data))
                 restrictedList = restrictedWorker(visitedStation, idxStation)
-                print(restrictedList)
+                # print(restrictedList)
                 for worker in restrictedList:
                     restricted.append(worker)
                 if (len(listA)==0 and len(listB)==0):
                     break
                 listB = checkTimeWorker(listA, dummyCT, copyTaskTime, nWorker, visitedStation[idxStation], listWorker, restricted, idxStation)
 
-            print("Update List B : ", end="")
-            print(listB)
+            # print("Update List B : ", end="")
+            # print(listB)
 
             # Update OFV
-            print("Copy Task Time")
-            print(copyTaskTime)
+            # print("Copy Task Time")
+            # print(copyTaskTime)
             OFV = calculateOFV(listB, copyTaskTime)
-            print("\nUpdate OFV = ")
-            print(OFV)
+            # print("\nUpdate OFV = ")
+            # print(OFV)
 
             # Update Prob
             Prob = calculateProb(listB, zAlfa, zBeta, q, pheromone_matrices)
@@ -410,9 +410,9 @@ for i in range (iteration):
 
             # Update Data
             Data_ = saveData(listB, OFV, Prob, Cumulative)
-            print("\nUpdate Data: ", end="")
-            print(Data_)
-            print("")
+            # print("\nUpdate Data: ", end="")
+            # print(Data_)
+            # print("")
 
             index += 1
         
@@ -463,37 +463,37 @@ for i in range (iteration):
         for i, pheromone in enumerate(pheromone_matrices):
             for data in dataStation:
                 if (i == data[2]-1):
-                    print(data[2], data[1], data[0])
+                    # print(data[2], data[1], data[0])
                     pheromone[data[1]-1][data[0]-1] += globalFeromon
 
         # Cetak matriks-matriks pheromone
-        for i, pheromone in enumerate(pheromone_matrices):
-            print(f"Matriks Pheromone-{i+1}:")
-            print(pheromone)
-            print()
+        # for i, pheromone in enumerate(pheromone_matrices):
+        #     print(f"Matriks Pheromone-{i+1}:")
+        #     print(pheromone)
+        #     print()
 
         
 
-print("\nResult Matriks: ")
-for i in range(len(resultMatrix)):
-    for j in range(len(resultMatrix[i])):
-        print(resultMatrix[i][j])
+# print("\nResult Matriks: ")
+# for i in range(len(resultMatrix)):
+#     for j in range(len(resultMatrix[i])):
+#         print(resultMatrix[i][j])
 
-print("\nCT Aktual: ",end="")
+# print("\nCT Aktual: ",end="")
 ctAktualTemp = 0
 for i in range(len(resultMatrix)):
     for j in range(len(resultMatrix[i])):
         check = resultMatrix[i][j]
         if (ctAktualTemp < check[7]):
             ctAktualTemp = check[7]
-print(ctAktualTemp)
-print("\nStation: ")
-print("Stasiun 1 = ", end="")
-print(Station1)
-print("Stasiun 2 = ", end="")
-print(Station2)
-print("Stasiun 3 = ", end="")
-print(Station3)
+# print(ctAktualTemp)
+# print("\nStation: ")
+# print("Stasiun 1 = ", end="")
+# print(Station1)
+# print("Stasiun 2 = ", end="")
+# print(Station2)
+# print("Stasiun 3 = ", end="")
+# print(Station3)
         
 
 # ---
@@ -506,25 +506,46 @@ endTime = time.perf_counter()
 
 # ----------------------------------------------------------------------------------
 # Print Hasil
-for i in range (nStation):
+minCT = []
+for i in range(nStation):
     print()
     print("========== STASIUN {} ==========".format(i+1))
     print("Task             : ", end="")
-    for task in (visitedStation[i]):
+    for task in visitedStation[i]:
         temp = task[0]
         print("Task " + str(temp) + " ", end="     ")
     print("\nResource         : ", end="")
-    for task in (visitedStation[i]):
+    for task in visitedStation[i]:
         temp = task[1]
         print("Worker " + str(temp) + " ", end="   ")
-    print("\nWaktu model 1    : ")
-
-    print("\nWaktu model 2    : ")
-    print("\nTotal waktu      : ")
-    print("\nCycle time       : ")
+    print("\nWaktu model 1    : ", end="")
+    for j in range(len(resultMatrix)):
+        for k in range(len(resultMatrix[j])):
+            check = resultMatrix[j][k]
+            if check[0] - 1 == i and check[3] == 1:
+                print(check[4], end="        ")
+    print("\nWaktu model 2    : ", end="")
+    for j in range(len(resultMatrix)):
+        for k in range(len(resultMatrix[j])):
+            check = resultMatrix[j][k]
+            if check[0] - 1 == i and check[3] == 2:
+                print(check[4], end="        ")
+    print("\nTotal waktu      : ", end="")
+    min = 10000000000
+    for j in range(2):
+        x = maxCTAktualStat[i]
+        if x < min:
+            min = x
+        print("Waktu model ke - {}: {}".format(i+1, x), end="   ")
+    print("\nCycle time       :", min)
+    minCT.append(min)
 
 print()
-print("Cycle time solusi terbaik adalah ")
-
+print("Cycle time solusi terbaik adalah ", end="")
+minn = minCT[0]
+for i in range(1, len(minCT)):
+    if (minn < minCT[i]):
+        minn = minCT[i]
+print(minn)
 print()
 print("Waktu untuk run program: {} detik".format(endTime-startTime))
