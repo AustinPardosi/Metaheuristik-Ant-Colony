@@ -255,9 +255,9 @@ def printInfoWorker(workerList):
     print()
 
 # Constant
-nTask = 9
-nWorker = 5
-nStation = 3
+nTask = 78
+nWorker = 41
+nStation = 16
 
 fileName = input("Masukkan nama file: ")
 Data = read_data(fileName)
@@ -266,11 +266,24 @@ Data = read_data(fileName)
 taskTimeData = combineTaskProducts((Data))
 
 # Assign jumlah worker ke stasiun
-# listWorker = assignWorkerToStation(nWorker, nStation)
-listWorker = [2,1,2]
+listWorker = assignWorkerToStation(nWorker, nStation)
+# listWorker = [2,1,2]
 nMaxStation1 = listWorker[0]
 nMaxStation2 = listWorker[1]
 nMaxStation3 = listWorker[2]
+nMaxStation4 = listWorker[3]
+nMaxStation5 = listWorker[4]
+nMaxStation6 = listWorker[5]
+nMaxStation7 = listWorker[6]
+nMaxStation8 = listWorker[7]
+nMaxStation9 = listWorker[8]
+nMaxStation10 = listWorker[9]
+nMaxStation11 = listWorker[10]
+nMaxStation12 = listWorker[11]
+nMaxStation13 = listWorker[12]
+nMaxStation14 = listWorker[13]
+nMaxStation15 = listWorker[14]
+nMaxStation16 = listWorker[15]
 
 # Tetapkan parameter
 colony = int(input("Masukkan jumlah koloni: "))
@@ -291,9 +304,22 @@ firstTask = [0]
 Station1 = []
 Station2 = []
 Station3 = []
+Station4 = []
+Station5 = []
+Station6 = []
+Station7 = []
+Station8 = []
+Station9 = []
+Station10 = []
+Station11 = []
+Station12 = []
+Station13 = []
+Station14 = []
+Station15 = []
+Station16 = []
 
 temp = []
-visitedStation = [Station1, Station2, Station3]
+visitedStation = [Station1, Station2, Station3, Station4, Station5, Station6, Station7, Station8, Station9, Station10, Station11, Station12, Station13, Station14, Station15, Station16]
 idxStation = 0
 restricted = []
 
