@@ -564,6 +564,8 @@ for data in dataTotalIterationColony:
 maxCT = []
 for i in range(nStation):
     print()
+    print(len(resultMatrix))
+    print(maxCTAktualStat)
     print("========== STASIUN {} ==========".format(i+1))
     print("Task             : ", end="")
     for task in visitedStation[i]:
@@ -591,7 +593,7 @@ for i in range(nStation):
         x = maxCTAktualStat[i]
         if x < min:
             min = x
-        print("Waktu model ke - {}: {}".format(i+1, x), end="   ")
+        print("Waktu model ke - {}: {}".format(j+1, x), end="   ")
     print("\nCycle time       :", min)
     maxCT.append(min)
 
