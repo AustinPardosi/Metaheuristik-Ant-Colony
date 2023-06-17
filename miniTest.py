@@ -143,7 +143,7 @@ def checkTimeWorker(listTask, dummyCT, listTimeData, totalWorker, visitedStation
     for task in listTask:
         for i in range(totalWorker):
             time = listTimeData[task-1][i]
-            print(task, i+1, time)
+            # print(task, i+1, time)
             if time <= dummyCT:
                 inp = (task, i+1)
                 tasks_to_check = np.concatenate((tasks_to_check, np.array([inp], dtype=tasks_to_check.dtype)))
@@ -352,7 +352,7 @@ for _ in range(nWorker):
 
 dataTotalIterationColony = []
 
-randData = [[0.453395713412637, 0.491498467321415, 0.846804777745682, 0.619367348176098, 0.297167465811096, 0.110205474800908, 0.829905579439964, 0.677562045922355, 0.376833942440117],[0.92465266805887, 0.264419560603802, 0.633751866069877, 0.676711676102697, 0.734620634039083, 0.569759018883808, 0.43164295906485, 0.243525255655381, 0.528864647340312]]
+#randData = [[0.453395713412637, 0.491498467321415, 0.846804777745682, 0.619367348176098, 0.297167465811096, 0.110205474800908, 0.829905579439964, 0.677562045922355, 0.376833942440117],[0.92465266805887, 0.264419560603802, 0.633751866069877, 0.676711676102697, 0.734620634039083, 0.110205474800908, 0.243525255655381, 0.528864647340312, 0.245928064755874]]
 
 maxTask = 9
 
@@ -361,6 +361,7 @@ for iteration in range (iteration):
         print("=======================================================")
         print("=======================================================")
         print("=======================================================")
+        print("ITERASI KEEE {}".format(iteration+1))
         print("KOLONI KEEE {}".format(m+1))
 
         # Combine task time for 2 produk
@@ -377,8 +378,8 @@ for iteration in range (iteration):
         resultMatrix = []
 
         index = 0
-        randd = randData[m]
-        print("randd", randd)
+        # randd = randData[m]
+        # print("randd", randd)
 
         # Penciptaan list A dan B
         firstTask = [0]
@@ -394,13 +395,13 @@ for iteration in range (iteration):
         print("List A : ", end="")
         print(listA)
         listB = checkTimeWorker(listA, dummyCT, taskTimeData, nWorker, visitedStation[idxStation], listWorker, restricted, idxStation) # List B + Worker
-        print("dummyCT", dummyCT)
-        print("taskTimeData", taskTimeData)
-        print("nWorker", nWorker)
-        print("visitedStation", visitedStation)
-        print("listWorker", listWorker)
-        print("restricted", restricted)
-        print("idxStation", idxStation)
+        # print("dummyCT", dummyCT)
+        # print("taskTimeData", taskTimeData)
+        # print("nWorker", nWorker)
+        # print("visitedStation", visitedStation)
+        # print("listWorker", listWorker)
+        # print("restricted", restricted)
+        # print("idxStation", idxStation)
         print("List B : ", end="")
         print(listB)
 
@@ -421,8 +422,8 @@ for iteration in range (iteration):
         for q in range (nTask):
             copyTaskTime = taskTimeData
             print("=============================================")
-            # random_decimal = random.random()
-            random_decimal = randd[index]
+            random_decimal = random.random()
+            # random_decimal = randd[index]
             print(random_decimal)
             chosen, tempTime = chooseProbability(random_decimal, Data_)
             print("Yang terpilih: ", end="")
@@ -573,17 +574,31 @@ for iteration in range (iteration):
         dataTotalIterationColony.append((iteration, m, dataStation, visitedStation, resultMatrix, maxCTAktualStat, ctAktualTemp))
     
     # Evaporasi Feromone
+    print("Update Feromone")
     totalCT = 0
     for data in dataTotalIterationColony:
-        if(data[0] == i):
+        if(data[0] == iteration):
             totalCT += data[6]
     avgCT = totalCT/colony
+    print("total", totalCT)
+    print("koloni", colony)
+    print("rata-rata", avgCT)
     for data in dataTotalIterationColony:
-        if(data[6] < avgCT):
+        if(data[6] > avgCT):
+            print("LOKASI", data[0], data[1])
+            print("Result Matriks")
+            print(data[4])
             for idx, pheromone in enumerate(pheromone_matrices):
-                for data in dataStation:
-                    if (idx == data[2]-1):
-                        pheromone[data[1]-1][data[0]-1] -= globalFeromon
+                for infoDataStation in data[2]:
+                    if (idx == infoDataStation[2]-1):
+                        print(infoDataStation[0],infoDataStation[1],idx)
+                        pheromone[infoDataStation[1]-1][infoDataStation[0]-1] -= globalFeromon
+
+    # Cetak matriks-matriks pheromone
+    for i, pheromone in enumerate(pheromone_matrices):
+        print(f"Matriks Pheromone-{i+1}:")
+        print(pheromone)
+        print()
 
 endTime = time.perf_counter()
 
