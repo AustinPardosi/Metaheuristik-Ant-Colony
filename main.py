@@ -418,8 +418,10 @@ for _ in range(nWorker):
     pheromone_matrices.append(pheromone)
 
 dataTotalIterationColony = []
-#randData = [[0.453395713412637, 0.491498467321415, 0.846804777745682, 0.619367348176098, 0.297167465811096, 0.110205474800908, 0.829905579439964, 0.677562045922355, 0.376833942440117],[0.92465266805887, 0.264419560603802, 0.633751866069877, 0.676711676102697, 0.734620634039083, 0.110205474800908, 0.243525255655381, 0.528864647340312, 0.245928064755874]]
+# randData = [[0.453395713412637, 0.491498467321415, 0.846804777745682, 0.619367348176098, 0.297167465811096, 0.110205474800908, 0.829905579439964, 0.677562045922355, 0.376833942440117],[0.92465266805887, 0.264419560603802, 0.633751866069877, 0.676711676102697, 0.734620634039083, 0.110205474800908, 0.243525255655381, 0.528864647340312, 0.245928064755874]]
 maxTask = 78
+checkFeasible = False
+maxIdxStation = 16
 
 for iteration in range (iteration):
     for m in range (colony):
@@ -454,7 +456,7 @@ for iteration in range (iteration):
 
 	    # Penciptaan list A dan B
         firstTask = [0]
-        posVisitTask = [0,1,2,3]
+        posVisitTask = [0,1,2,3,4,14,19,25,61,63]
         idxStation = 0
         restricted = []
 
@@ -513,6 +515,12 @@ for iteration in range (iteration):
                 restrictedList = restrictedWorker(visitedStation, idxStation)
                 for worker in restrictedList:
                     restricted.append(worker)
+                if (idxStation == maxIdxStation) :
+                    print("")
+                    print("Solusi Tidak Feasible karena stasiun sudah terisi sepenuhnya")
+                    print("")
+                    checkFeasible = True
+                    break
                 listB = checkTimeWorker(listA, dummyCT, copyTaskTime, nWorker, visitedStation[idxStation], listWorker, restricted, idxStation)
 
             # Update OFV
@@ -606,6 +614,13 @@ for iteration in range (iteration):
 
 endTime = time.perf_counter()
 
+# Print Pheromone Terakhir
+# for i, pheromone in enumerate(pheromone_matrices):
+#     print(f"Matriks Pheromone-{i+1}:")
+#     print(pheromone)
+#     print()
+
+
 # ----------------------------------------------------------------------------------
 # Print Hasil
 
@@ -628,45 +643,46 @@ for i, data in enumerate(dataTotalIterationColony):
         maxCTAktualStat = data[5]
         visitedStation = data[3]
 
-printInfoAnswer(iter, kol)
+if (not checkFeasible):
+    printInfoAnswer(iter, kol)
 
-for i in range(nStation):
+    for i in range(nStation):
+        print()
+        print("========== STASIUN {} ==========".format(i+1))
+        print("Task             : ", end="")
+        for task in visitedStation[i]:
+            temp = task[0]
+            print("Task " + str(temp) + " ", end="     ")
+        print("\nResource         : ", end="")
+        for task in visitedStation[i]:
+            temp = task[1]
+            print("Worker " + str(temp) + " ", end="   ")
+        print("\nWaktu Mulai      : ", end="")
+        for j in range(len(resultMatrix)):
+            for k in range(len(resultMatrix[j])):
+                check = resultMatrix[j][k]
+                if check[0] - 1 == i and check[3] == 1:
+                    print(check[5], end="        ")
+        print("\nWaktu Selesai    : ", end="")
+        for j in range(len(resultMatrix)):
+            for k in range(len(resultMatrix[j])):
+                check = resultMatrix[j][k]
+                if check[0] - 1 == i and check[3] == 2:
+                    print(round(check[4]+check[5],2), end="        ")
+        min = 10000000000
+        for j in range(2):
+            x = maxCTAktualStat[i]
+            if x < min:
+                min = x
+        print("\nCycle time       :", min)
+        maxCT.append(min)
+
     print()
-    print("========== STASIUN {} ==========".format(i+1))
-    print("Task             : ", end="")
-    for task in visitedStation[i]:
-        temp = task[0]
-        print("Task " + str(temp) + " ", end="     ")
-    print("\nResource         : ", end="")
-    for task in visitedStation[i]:
-        temp = task[1]
-        print("Worker " + str(temp) + " ", end="   ")
-    print("\nWaktu Mulai      : ", end="")
-    for j in range(len(resultMatrix)):
-        for k in range(len(resultMatrix[j])):
-            check = resultMatrix[j][k]
-            if check[0] - 1 == i and check[3] == 1:
-                print(check[5], end="        ")
-    print("\nWaktu Selesai    : ", end="")
-    for j in range(len(resultMatrix)):
-        for k in range(len(resultMatrix[j])):
-            check = resultMatrix[j][k]
-            if check[0] - 1 == i and check[3] == 2:
-                print(round(check[4]+check[5],2), end="        ")
-    min = 10000000000
-    for j in range(2):
-        x = maxCTAktualStat[i]
-        if x < min:
-            min = x
-    print("\nCycle time       :", min)
-    maxCT.append(min)
-
-print()
-print("Cycle time solusi terbaik adalah ", end="")
-maximumCT = maxCT[0]
-for i in range(1, len(maxCT)):
-    if (maximumCT < maxCT[i]):
-        maximumCT = maxCT[i]
-print(maximumCT)
-print()
-print("Waktu untuk run program: {} detik".format(endTime-startTime))
+    print("Cycle time solusi terbaik adalah ", end="")
+    maximumCT = maxCT[0]
+    for i in range(1, len(maxCT)):
+        if (maximumCT < maxCT[i]):
+            maximumCT = maxCT[i]
+    print(maximumCT)
+    print()
+    print("Waktu untuk run program: {} detik".format(endTime-startTime))
