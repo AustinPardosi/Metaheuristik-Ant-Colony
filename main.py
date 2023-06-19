@@ -163,9 +163,9 @@ def calculateDummyCycleTime(listTaskTime, station):
     else :
         return maxValue
 
-# Fungsi ini 
-# Parameter: 
-# Return: 
+# Fungsi ini menghitung dummyCT yang baru
+# Parameter: listTaskTime, newOFV
+# Return: dummyCT yang baru
 def newDummyCycleTime(listTaskTime, newOFV):
     # Find the maximum time in list
     maxValue = listTaskTime[0][0]
@@ -296,16 +296,16 @@ def calculateCumulative(Prob):
 
 # Fungsi ini menyimpan data-data terkait daftar B (listB), OFV, probabilitas, dan nilai kumulatif dalam sebuah struktur data
 # Parameter: daftar B (listB), OFV, probabilitas, dan nilai kumulatif
-# Return: 
+# Return: sebuah list data yang menyimpan informasi diatas
 def saveData(listB, OFV, Prob, Cumulative):
     Data_ = []
     for i in range(len(listB)):
         Data_.append((listB[i],OFV[i], Prob[i], Cumulative[i]))
     return Data_
 
-# Fungsi ini 
-# Parameter:
-# Return:
+# Fungsi ini memilih (task,worker) yang memiliki kesesuaian nilai kumulatif dengan nilai random
+# Parameter: angka random, list Data
+# Return: (task, worker) dan OFV
 def chooseProbability(random, listData):
     chosen = None
     for data in listData:
@@ -315,24 +315,9 @@ def chooseProbability(random, listData):
             break
     return chosen[0], chosen[1]
 
-# Fungsi ini 
-# Parameter:
-# Return:
-def updateData(listData, chosenTask, chosenWorker, time):
-    updatedData = []
-    for data in listData :
-        check = data[0]
-        if (check[0] != chosenTask) :
-            if (check[1] == chosenWorker) :
-                newOFV = data[1] + time
-            else :
-                newOFV = data[1]
-            updatedData.append((check, newOFV, data[2], data[3]))
-    return updatedData
-
-# Fungsi ini 
-# Parameter:
-# Return:
+# Fungsi ini mengupdate data-data yang terdapat di dalam task time untuk diolah di operasi selanjutnya
+# Parameter: listTaskTime, chosenTask, chosenWorker, addTime, time, taskTimeData, newAddedTask
+# Return: task time yang telah di update
 def updateTaskTimeData(listTaskTime, chosenTask, chosenWorker, addTime, time, taskTimeData, newAddedTask):
     for i in range(len(listTaskTime)):
         for j in range(len(listTaskTime[0])):
@@ -345,9 +330,9 @@ def updateTaskTimeData(listTaskTime, chosenTask, chosenWorker, addTime, time, ta
                     listTaskTime[i][j] = round(taskTimeData[i][j],2) + time
     return listTaskTime
 
-# Fungsi ini 
-# Parameter:
-# Return:
+# Fungsi ini mendata task-task persyaratan dari task yang baru dtg
+# Parameter: list_of_tasks (list task yang baru datang), tasks(precedence diagram)
+# Return: list yang berisi persyaratan dari masing-masing task dalam list_of_tasks
 def searchConditionList(list_of_tasks, tasks):
     conditionList = set()
     for task in list_of_tasks:
@@ -355,9 +340,9 @@ def searchConditionList(list_of_tasks, tasks):
             conditionList.update(tasks[task])
     return list(conditionList)
 
-# Fungsi ini 
-# Parameter:
-# Return:
+# Fungsi ini mencari nilai OFV max dari keseluruhan conditionList
+# Parameter: currStation (stasiun saat ini), conditionList (list persyaratan atas task yang baru dtg)
+# Return: nilai OFV max
 def searchMaxTime(currStation, conditionList):
     max = 0
     for info in currStation:
@@ -365,9 +350,9 @@ def searchMaxTime(currStation, conditionList):
             max = info[2]
     return max
 
-# Fungsi ini 
-# Parameter:
-# Return:
+# Fungsi ini mendata seluruh worker yang telah dipakai di dalam stasiun yang telah diisi
+# Parameter: listStation (list yang berisi data informasi seluruh stasiun), currIdxStation (index stasiun yang sedang diisi saat ini)
+# Return: list worker yang telah digunakan
 def restrictedWorker(listStation, currIdxStation):
     restricted = set()
     for i in range(currIdxStation):
@@ -381,6 +366,11 @@ def printInfoWorker(workerList):
     print()
     for i in range (len(workerList)):
         print("Stasiun {} ada {} pekerja".format(i+1, workerList[i]))
+    print()
+
+def printInfoAnswer(iteration, colony):
+    print()
+    print("Lokasi keberadaan jawaban di Iterasi {} Koloni {}".format(iteration+1, colony+1))
     print()
 
 # Constant
@@ -409,6 +399,7 @@ nMaxStation13 = listWorker[12]
 nMaxStation14 = listWorker[13]
 nMaxStation15 = listWorker[14]
 nMaxStation16 = listWorker[15]
+printInfoWorker(listWorker)
 
 # Tetapkan parameter
 colony = int(input("Masukkan jumlah koloni: "))
@@ -637,6 +628,8 @@ for i, data in enumerate(dataTotalIterationColony):
         maxCTAktualStat = data[5]
         visitedStation = data[3]
 
+printInfoAnswer(iter, kol)
+
 for i in range(nStation):
     print()
     print("========== STASIUN {} ==========".format(i+1))
@@ -648,25 +641,23 @@ for i in range(nStation):
     for task in visitedStation[i]:
         temp = task[1]
         print("Worker " + str(temp) + " ", end="   ")
-    print("\nWaktu model 1    : ", end="")
+    print("\nWaktu Mulai      : ", end="")
     for j in range(len(resultMatrix)):
         for k in range(len(resultMatrix[j])):
             check = resultMatrix[j][k]
             if check[0] - 1 == i and check[3] == 1:
-                print(check[4], end="        ")
-    print("\nWaktu model 2    : ", end="")
+                print(check[5], end="        ")
+    print("\nWaktu Selesai    : ", end="")
     for j in range(len(resultMatrix)):
         for k in range(len(resultMatrix[j])):
             check = resultMatrix[j][k]
             if check[0] - 1 == i and check[3] == 2:
-                print(check[4], end="        ")
-    print("\nTotal waktu      : ", end="")
+                print(round(check[4]+check[5],2), end="        ")
     min = 10000000000
     for j in range(2):
         x = maxCTAktualStat[i]
         if x < min:
             min = x
-        print("Waktu model ke - {}: {}".format(j+1, x), end="   ")
     print("\nCycle time       :", min)
     maxCT.append(min)
 
