@@ -8,15 +8,16 @@ import numpy as np
 # Key dalam dictionary tasks merepresentasikan nomor tugas, sedangkan nilai dalam dictionary tersebut adalah daftar nomor tugas sebelumnya yang harus selesai sebelum tugas tersebut dapat dimulai.
 tasks = {
     0: [],              # Tidak ada tugas sebelumnya untuk tugas 0
-    1: [0],             # Tugas 0 harus selesai sebelum tugas 1 dimulai
+    1: [0],             
     2: [0],        
     3: [0],        
-    4: [0],        
-    5: [1, 2, 3, 4],    # Tugas 1, 2, 3, dan 4 harus selesai sebelum tugas 5 dimulai
-    6: [5],             # Tugas 5 harus selesai sebelum tugas 6 dimulai
-    7: [5],        
-    8: [6, 7],          # Tugas 6 dan 7 harus selesai sebelum tugas 8 dimulai
-    9: [8],             # Tugas 8 harus selesai sebelum tugas 9 dimulai
+    4: [1],        
+    5: [2, 3],    
+    6: [4],             
+    7: [0],        
+    8: [6],          
+    9: [0],
+    10: [7,8,9],             
 }
 
 # ========== READ DATA FROM CSV ==========
@@ -28,27 +29,23 @@ def read_data(filename):
 
     with open(filename, 'r') as file:
         reader = csv.reader(file)
-        # Skip first row
-        next(reader)
         for row in reader:
-            # Skip first column
-            row_data = row[1:]
-            data.append(row_data)
+            data.append(row)
     return data
 
 # ========== FUNCTIONS ==========
 
-# Fungsi ini menggabungkan waktu tugas untuk 2 produk.
+# Fungsi ini mengubah dataLengkap menjadi float.
 # Parameter: listTask (daftar waktu tugas)
-# Return: hasil penggabungan waktu tugas untuk 2 produk
-def combineTaskProducts(listTask):
-    rows = len(listTask) // 2
+# Return: hasil convert waktu tugas menjadi float
+def convertData(listTask):
+    rows = len(listTask)
     cols = len(listTask[0])
     result = [[0] * cols for i in range(rows)]
 
     for i in range(rows):
         for j in range(cols):
-            result[i][j] = round((100/150) * float(listTask[2*i][j]) + (50/150) * float(listTask[2*i+1][j]), 2)
+            result[i][j] = float(listTask[i][j])
     
     return result
 
@@ -305,8 +302,8 @@ def printInfoAnswer(iteration, colony):
     print()
 
 # Constant
-nTask = 9
-nWorker = 5
+nTask = 10
+nWorker = 4
 nStation = 3
 
 fileName = input("Masukkan nama file: ")
@@ -329,7 +326,7 @@ zBeta = float(input("Masukkan nilai zBeta: "))
 
 # Alokasi Task dan Resource (Worker)
 startTime = time.perf_counter()
-dummyCT = calculateDummyCycleTime(combineTaskProducts((Data)), nStation)
+dummyCT = calculateDummyCycleTime(convertData((Data)), nStation)
 
 pheromone_matrices = []  # Daftar untuk menyimpan matriks pheromone
 for _ in range(nWorker):
@@ -340,13 +337,13 @@ dataTotalIterationColony = []
 
 # randData = [[0.453395713412637, 0.491498467321415, 0.846804777745682, 0.619367348176098, 0.297167465811096, 0.110205474800908, 0.829905579439964, 0.677562045922355, 0.376833942440117],[0.92465266805887, 0.264419560603802, 0.633751866069877, 0.676711676102697, 0.734620634039083, 0.110205474800908, 0.243525255655381, 0.528864647340312, 0.245928064755874]]
 
-maxTask = 9
+maxTask = 10
 checkFeasible = False
 
 for iteration in range (iteration):
     for m in range (colony):
         # Combine task time for 2 produk
-        taskTimeData = combineTaskProducts((Data))
+        taskTimeData = convertData((Data))
 
         # List Station 1, 2, 3
         Station1 = []
@@ -396,7 +393,7 @@ for iteration in range (iteration):
             visitedStation[idxStation].append((chosenTask, chosenWorker, tempTime))
 
             # Berhenti Jika Task terakhir telah dicapai
-            if (chosenTask == 9):
+            if (chosenTask == maxTask):
                 break
 
             # Update listA
@@ -413,18 +410,15 @@ for iteration in range (iteration):
                 conditionList = []
                 addTime = 0
 
-            copyTaskTime = updateTaskTimeData(copyTaskTime, chosenTask, chosenWorker, addTime, tempTime, combineTaskProducts((Data)), newAddedTask)
+            copyTaskTime = updateTaskTimeData(copyTaskTime, chosenTask, chosenWorker, addTime, tempTime, convertData((Data)), newAddedTask)
             listB = checkTimeWorker(listA, dummyCT, copyTaskTime, nWorker, visitedStation[idxStation],  listWorker, restricted, idxStation)
             if (len(listB) == 0) :  #Ganti Stasiun
                 idxStation += 1
-                copyTaskTime = combineTaskProducts((Data))
+                copyTaskTime = convertData((Data))
                 restrictedList = restrictedWorker(visitedStation, idxStation)
                 for worker in restrictedList:
                     restricted.append(worker)
                 if (idxStation == maxIdxStation) :
-                    print("")
-                    print("Solusi Tidak Feasible karena stasiun sudah terisi sepenuhnya")
-                    print("")
                     checkFeasible = True
                     break
                 listB = checkTimeWorker(listA, dummyCT, copyTaskTime, nWorker, visitedStation[idxStation], listWorker, restricted, idxStation)
@@ -447,7 +441,7 @@ for iteration in range (iteration):
         while tempIdx < 3:
             row = []  # Membuat objek row baru di setiap iterasi
             stat = visitedStation[tempIdx]
-            dataAwal = combineTaskProducts(Data)
+            dataAwal = convertData(Data)
             for task in stat:
                 for j in range(2):
                     statKerja = tempIdx + 1
@@ -493,7 +487,7 @@ for iteration in range (iteration):
 
         newOFV = calculateNewOFV(visitedStation)
 
-        dummyCT = newDummyCycleTime(combineTaskProducts((Data)), newOFV)
+        dummyCT = newDummyCycleTime(convertData((Data)), newOFV)
 
         ctAktualTemp = 0
         for i in range(len(resultMatrix)):
@@ -584,3 +578,5 @@ if (not checkFeasible) :
     print(maximumCT)
     print()
     print("Waktu untuk run program: {} detik".format(endTime-startTime))
+else:
+    print("\nSolusi Tidak Feasible karena stasiun sudah terisi sepenuhnya\n")

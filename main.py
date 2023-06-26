@@ -97,27 +97,23 @@ def read_data(filename):
 
     with open(filename, 'r') as file:
         reader = csv.reader(file)
-        # Skip first row
-        next(reader)
         for row in reader:
-            # Skip first column
-            row_data = row[1:]
-            data.append(row_data)
+            data.append(row)
     return data
 
 # ========== FUNCTIONS ==========
 
-# Fungsi ini menggabungkan waktu tugas untuk 2 produk.
+# Fungsi ini mengubah dataLengkap menjadi float.
 # Parameter: listTask (daftar waktu tugas)
-# Return: hasil penggabungan waktu tugas untuk 2 produk
-def combineTaskProducts(listTask):
-    rows = len(listTask) // 2
+# Return: hasil convert waktu tugas menjadi float
+def convertData(listTask):
+    rows = len(listTask)
     cols = len(listTask[0])
     result = [[0] * cols for i in range(rows)]
 
     for i in range(rows):
         for j in range(cols):
-            result[i][j] = round((100/150) * float(listTask[2*i][j]) + (50/150) * float(listTask[2*i+1][j]), 2)
+            result[i][j] = float(listTask[i][j])
     
     return result
 
@@ -410,7 +406,7 @@ zBeta = float(input("Masukkan nilai zBeta: "))
 
 # Alokasi Task dan Resource (Worker)
 startTime = time.perf_counter()
-dummyCT = calculateDummyCycleTime(combineTaskProducts((Data)), nStation)
+dummyCT = calculateDummyCycleTime(convertData((Data)), nStation)
 
 pheromone_matrices = []  # Daftar untuk menyimpan matriks pheromone
 for _ in range(nWorker):
@@ -426,7 +422,7 @@ maxIdxStation = 16
 for iteration in range (iteration):
     for m in range (colony):
         # Combine task time for 2 produk
-        taskTimeData = combineTaskProducts((Data))
+        taskTimeData = convertData((Data))
 
         # List Station 1, 2, 3, .., 16
         Station1 = []	
@@ -506,12 +502,12 @@ for iteration in range (iteration):
                 conditionList = []
                 addTime = 0
 
-            copyTaskTime = updateTaskTimeData(copyTaskTime, chosenTask, chosenWorker, addTime, tempTime, combineTaskProducts((Data)), newAddedTask)
+            copyTaskTime = updateTaskTimeData(copyTaskTime, chosenTask, chosenWorker, addTime, tempTime, convertData((Data)), newAddedTask)
             listB = checkTimeWorker(listA, dummyCT, copyTaskTime, nWorker, visitedStation[idxStation],  listWorker, restricted, idxStation)
 
             if (len(listB) == 0) :  #Ganti Stasiun
                 idxStation += 1
-                copyTaskTime = combineTaskProducts((Data))
+                copyTaskTime = convertData((Data))
                 restrictedList = restrictedWorker(visitedStation, idxStation)
                 for worker in restrictedList:
                     restricted.append(worker)
@@ -542,7 +538,7 @@ for iteration in range (iteration):
         while tempIdx < 16:
             row = []  # Membuat objek row baru di setiap iterasi
             stat = visitedStation[tempIdx]
-            dataAwal = combineTaskProducts(Data)
+            dataAwal = convertData(Data)
             for task in stat:
                 for j in range(2):
                     statKerja = tempIdx + 1
@@ -588,7 +584,7 @@ for iteration in range (iteration):
 
         newOFV = calculateNewOFV(visitedStation)
 
-        dummyCT = newDummyCycleTime(combineTaskProducts((Data)), newOFV)
+        dummyCT = newDummyCycleTime(convertData((Data)), newOFV)
 
         ctAktualTemp = 0
         for i in range(len(resultMatrix)):
