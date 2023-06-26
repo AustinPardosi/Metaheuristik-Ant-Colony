@@ -512,9 +512,6 @@ for iteration in range (iteration):
                 for worker in restrictedList:
                     restricted.append(worker)
                 if (idxStation == maxIdxStation) :
-                    print("")
-                    print("Solusi Tidak Feasible karena stasiun sudah terisi sepenuhnya")
-                    print("")
                     checkFeasible = True
                     break
                 listB = checkTimeWorker(listA, dummyCT, copyTaskTime, nWorker, visitedStation[idxStation], listWorker, restricted, idxStation)
@@ -682,3 +679,5 @@ if (not checkFeasible):
     print(maximumCT)
     print()
     print("Waktu untuk run program: {} detik".format(endTime-startTime))
+else :
+    print("\nSolusi Tidak Feasible karena stasiun sudah terisi sepenuhnya")
