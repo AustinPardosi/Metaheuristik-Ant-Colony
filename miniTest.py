@@ -35,9 +35,9 @@ def read_data(filename):
 
 # ========== FUNCTIONS ==========
 
-# Fungsi ini menggabungkan waktu tugas untuk 2 produk.
-# Parameter: listTask (daftar waktu tugas)
-# Return: hasil penggabungan waktu tugas untuk 2 produk
+# Fungsi ini mendapatkan data-data untuk produk 1 saja, atau produk 2 saja	
+# Parameter: listTask (daftar waktu tugas), idx (1 = produk 1, 2 = produk 2)
+# Return: data produk 1 saja / 2 saja
 def collectDataProduct(listTask, idx):
     rows = len(listTask) // 2
     cols = len(listTask[0])
@@ -118,17 +118,6 @@ def calculateCUB(listTaskTime, nWorker):
 # Parameter: listTaskTime (daftar waktu tugas), station (jumlah stasiun)
 # Return: waktu siklus palsu
 def calculateDummyCycleTime(CLB, CUB, largestMaxTime):
-    # # Find the maximum time in list
-    # maxValue = listTaskTime[0][0]
-    # for i in range(len(listTaskTime)):
-    #     for j in range(len(listTaskTime[0])):
-    #         if (maxValue < listTaskTime[i][j]):
-    #             maxValue = listTaskTime[i][j]
-    # val1 = (2 * maxValue) / station
-    # if (val1 > maxValue) :
-    #     return val1
-    # else :
-    #     return maxValue
     value1 = (CLB + CUB) / 2
     value2 = largestMaxTime
     if (value1 > value2) :
@@ -364,8 +353,8 @@ DataProduk1 = collectDataProduct(Data, 1)
 DataProduk2 = collectDataProduct(Data, 2)
 
 # Assign jumlah worker ke stasiun
-# listWorker = assignWorkerToStation(nWorker, nStation)
-listWorker = [2,1,1]
+listWorker = assignWorkerToStation(nWorker, nStation)
+# listWorker = [2,1,1]
 nMaxStation1 = listWorker[0]
 nMaxStation2 = listWorker[1]
 nMaxStation3 = listWorker[2]
@@ -395,7 +384,7 @@ for _ in range(nWorker):
 dataTotalIterationColony = []
 
 # randData = [[0.453395713412637, 0.491498467321415, 0.846804777745682, 0.619367348176098, 0.297167465811096, 0.110205474800908, 0.829905579439964, 0.677562045922355, 0.376833942440117],[0.92465266805887, 0.264419560603802, 0.633751866069877, 0.676711676102697, 0.734620634039083, 0.110205474800908, 0.243525255655381, 0.528864647340312, 0.245928064755874]]
-randData = [0.453395713412637, 0.115409834175883, 0.609425110922689, 0.619367348176098, 0.829367348176098, 0.76367348176098, 0.929367348176098, 0.129367348176098, 0.129367348176098, 0.129367348176098]
+# randData = [0.453395713412637, 0.115409834175883, 0.609425110922689, 0.619367348176098, 0.829367348176098, 0.76367348176098, 0.929367348176098, 0.129367348176098, 0.129367348176098, 0.129367348176098]
 
 maxTask = 10
 checkFeasible = False
@@ -417,7 +406,7 @@ for iteration in range (iteration):
 
         index = 0
         maxIdxStation = 3
-        randd = randData
+        # randd = randData
 
         # Penciptaan list A dan B
         firstTask = [0]
@@ -444,8 +433,8 @@ for iteration in range (iteration):
 
         for q in range (nTask):
             copyTaskTime = taskTimeData
-            # random_decimal = random.random()
-            random_decimal = randd[index]
+            random_decimal = random.random()
+            # random_decimal = randd[index]
             chosen, tempTime = chooseProbability(random_decimal, Data_)
             # print("Terpilih : ", end="")
             # print(chosen, tempTime)
