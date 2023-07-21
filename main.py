@@ -230,8 +230,8 @@ def checkPrecedence(precedence_diagram, listVisited, posVisitTask):
     
     return tasks_to_check, newAddedTask
 
-# Batasan list B
-# Fungsi ini mengecek semua tugas-tugas yang ada pada list A berdasarkan dummyCT 
+# Batasan list B + C
+# Fungsi ini mengecek semua tugas-tugas yang ada pada list A berdasarkan dummyCT, listX, listY
 # Parameter: listTask (daftar tugas yang akan diperiksa), dummyCT (waktu siklus palsu), listTimeData (daftar waktu tugas), totalWorker (jumlah total pekerja), visitedStation (daftar stasiun yang telah dikunjungi), listWorker (daftar jumlah pekerja di setiap stasiun), restrictedList (daftar pekerja terbatas), dan idxStation (indeks stasiun saat ini). 
 # Return: list B (result)
 def checkTimeWorker(listTask, dummyCT, listTimeData, totalWorker, visitedStation, listWorker, restrictedList, idxStation, listX, listY):
@@ -723,37 +723,37 @@ if (not checkFeasible) :
             for k in range(len(resultMatrix[j])):
                 check = resultMatrix[j][k]
                 if check[0] - 1 == i and check[3] == 1:
-                    print(check[5], end="         ")
+                    print("{:.2f}".format(check[5]), end="         ")
         print("\nWaktu Proses Produk 1    : ", end="")
         for j in range(len(resultMatrix)):
             for k in range(len(resultMatrix[j])):
                 check = resultMatrix[j][k]
                 if check[0] - 1 == i and check[3] == 1:
-                    print(check[4], end="         ")
+                    print("{:.2f}".format(check[4]), end="         ")
         print("\nWaktu Selesai Produk 1   : ", end="")
         for j in range(len(resultMatrix)):
             for k in range(len(resultMatrix[j])):
                 check = resultMatrix[j][k]
                 if check[0] - 1 == i and check[3] == 1:
-                    print(round(check[6],2), end="         ")
+                    print("{:.2f}".format(check[6]), end="         ")
         print("\nWaktu Mulai Produk 2     : ", end="")
         for j in range(len(resultMatrix)):
             for k in range(len(resultMatrix[j])):
                 check = resultMatrix[j][k]
                 if check[0] - 1 == i and check[3] == 2:
-                    print(check[5], end="         ")
+                    print("{:.2f}".format(check[5]), end="         ")
         print("\nWaktu Proses Produk 2    : ", end="")
         for j in range(len(resultMatrix)):
             for k in range(len(resultMatrix[j])):
                 check = resultMatrix[j][k]
                 if check[0] - 1 == i and check[3] == 2:
-                    print(check[4], end="         ")
+                    print("{:.2f}".format(check[4]), end="         ")
         print("\nWaktu Selesai Produk 2   : ", end="")
         for j in range(len(resultMatrix)):
             for k in range(len(resultMatrix[j])):
                 check = resultMatrix[j][k]
                 if check[0] - 1 == i and check[3] == 2:
-                    print(round(check[6],2), end="        ")
+                    print("{:.2f}".format(check[6]), end="        ")
         min = 10000000000
         for j in range(2):
             x = maxCTAktualStat[i]
