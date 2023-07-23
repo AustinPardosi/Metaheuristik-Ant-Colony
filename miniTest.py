@@ -164,11 +164,22 @@ def checkPrecedence(precedence_diagram, listVisited, posVisitTask):
     
     return tasks_to_check, newAddedTask
 
-# Batasan list B
-# Fungsi ini mengecek semua tugas-tugas yang ada pada list A berdasarkan dummyCT 
+def checkCurrentList(listTask, listX, listY):	
+    result = 0	
+    for task in listTask:	
+        if task[0] in listX:	
+            result = "X"	
+            break	
+        elif task[0] in listY:	
+            result = "Y"	
+            break	
+    return result
+
+# Batasan list B + C
+# Fungsi ini mengecek semua tugas-tugas yang ada pada list A berdasarkan dummyCT, listX, listY
 # Parameter: listTask (daftar tugas yang akan diperiksa), dummyCT (waktu siklus palsu), listTimeData (daftar waktu tugas), totalWorker (jumlah total pekerja), visitedStation (daftar stasiun yang telah dikunjungi), listWorker (daftar jumlah pekerja di setiap stasiun), restrictedList (daftar pekerja terbatas), dan idxStation (indeks stasiun saat ini). 
 # Return: list B (result)
-def checkTimeWorker(listTask, dummyCT, listTimeData, totalWorker, visitedStation, listWorker, restrictedList, idxStation, listX, listY):
+def checkTimeWorker(listTask, dummyCT, listTimeData, totalWorker, visitedStation, listWorker, restrictedList, idxStation, listX, listY, currentList):
     tasks_to_check = np.empty(0, dtype=[('task', int), ('worker', int)])
     result = np.empty(0, dtype=[('task', int), ('worker', int)])
 
@@ -191,14 +202,18 @@ def checkTimeWorker(listTask, dummyCT, listTimeData, totalWorker, visitedStation
         valid_workers = [worker[1] for worker in visitedStation]
         tasks_to_check = np.array([task for task in tasks_to_check if task[1] in valid_workers], dtype=tasks_to_check.dtype)
 
-    for task in tasks_to_check:
-        if task[1] not in restrictedList:
-            if (task[0] in listX) and (task[0] not in listY):
-                result = np.append(result, task)
-            elif (task[0] in listY) and (task[0] not in listX):
-                result = np.append(result, task)
-            elif (task[0] not in listX) and (task[0] not in listY):
-                result = np.append(result, task)
+    for task in tasks_to_check:	
+        if task[1] not in restrictedList:	
+            if currentList == 0:	
+                result = np.append(result, task)	
+            else:	
+                if currentList == "X":	
+                    if task[0] not in listY:	
+                        result = np.append(result, task)	
+                elif currentList == "Y":	
+                    if task[0] not in listX:	
+                        result = np.append(result, task)
+
     return result
 
 # Fungsi ini menghitung probabilitas atas berdasarkan beberapa variabel dan matriks feromon. 
@@ -388,11 +403,14 @@ dataTotalIterationColony = []
 
 maxTask = 10
 checkFeasible = False
+locationNotFeasible = []
 
 for iteration in range (iteration):
     for m in range (colony):
         # Combine task time for 2 produk
         taskTimeData = combineTaskProducts((Data))
+
+        currList = 0
 
         # List Station 1, 2, 3
         Station1 = []
@@ -417,7 +435,7 @@ for iteration in range (iteration):
         listA, newAddedTask = checkPrecedence(tasks, firstTask, posVisitTask)
 
         # List B + Worker
-        listB = checkTimeWorker(listA, dummyCT, taskTimeData, nWorker, visitedStation[idxStation], listWorker, restricted, idxStation, listX, listY)
+        listB = checkTimeWorker(listA, dummyCT, taskTimeData, nWorker, visitedStation[idxStation], listWorker, restricted, idxStation, listX, listY, currList)
 
         # Calculating OFV
         OFV = calculateOFV(listB, taskTimeData)
@@ -462,8 +480,10 @@ for iteration in range (iteration):
                 addTime = 0
 
             copyTaskTime = updateTaskTimeData(copyTaskTime, chosenTask, chosenWorker, addTime, tempTime, combineTaskProducts((Data)), newAddedTask)
-            listB = checkTimeWorker(listA, dummyCT, copyTaskTime, nWorker, visitedStation[idxStation],  listWorker, restricted, idxStation, listX, listY)
+            currList = checkCurrentList(visitedStation[idxStation], listX, listY)
+            listB = checkTimeWorker(listA, dummyCT, copyTaskTime, nWorker, visitedStation[idxStation],  listWorker, restricted, idxStation, listX, listY, currList)
             if (len(listB) == 0) :  #Ganti Stasiun
+                currList = 0
                 idxStation += 1
                 copyTaskTime = combineTaskProducts((Data))
                 restrictedList = restrictedWorker(visitedStation, idxStation)
@@ -471,8 +491,9 @@ for iteration in range (iteration):
                     restricted.append(worker)
                 if (idxStation == maxIdxStation) :
                     checkFeasible = True
+                    locationNotFeasible.append((iteration, m))
                     break
-                listB = checkTimeWorker(listA, dummyCT, copyTaskTime, nWorker, visitedStation[idxStation], listWorker, restricted, idxStation, listX, listY)
+                listB = checkTimeWorker(listA, dummyCT, copyTaskTime, nWorker, visitedStation[idxStation], listWorker, restricted, idxStation, listX, listY, currList)
             # print("List B: ")
             # print(listB)
             # print()
@@ -593,10 +614,16 @@ endTime = time.perf_counter()
 # Pilih data yang memiliki CT Aktual paling kecil
 idxHasil = 0
 min = 999999999999999999
+
+restrictedResult = []
+for data in locationNotFeasible:
+    restrictedResult.append((data[0],data[1]))
+
 for i, data in enumerate(dataTotalIterationColony):
-    if (data[6] < min):
-        idxHasil = i
-        min = data[6]
+    if ((data[0],data[1])) not in restrictedResult:
+        if (data[6] < min):
+            idxHasil = i
+            min = data[6]
 
 maxCT = []
 
@@ -609,76 +636,79 @@ for i, data in enumerate(dataTotalIterationColony):
         maxCTAktualStat = data[5]
         visitedStation = data[3]
 
-if (not checkFeasible) :
-    printInfoAnswer(iter, kol)
-
-    # for i in range(len(resultMatrix)):
-    #     for j in range(len(resultMatrix[0])):
-    #         print(resultMatrix[i][j])
-
-    for i in range(nStation):
-        print()
-        print("========== STASIUN {} ==========".format(i+1))
-        print("Task                     : ", end="")
-        for task in visitedStation[i]:
-            temp = task[0]
-            print("Task " + str(temp) + " ", end="     ")
-        print("\nResource                 : ", end="")
-        for task in visitedStation[i]:
-            temp = task[1]
-            print("Worker " + str(temp) + " ", end="   ")
-        print("\nWaktu Mulai Produk 1     : ", end="")
-        for j in range(len(resultMatrix)):
-            for k in range(len(resultMatrix[j])):
-                check = resultMatrix[j][k]
-                if check[0] - 1 == i and check[3] == 1:
-                    print("{:.2f}".format(check[5]), end="         ")
-        print("\nWaktu Proses Produk 1    : ", end="")
-        for j in range(len(resultMatrix)):
-            for k in range(len(resultMatrix[j])):
-                check = resultMatrix[j][k]
-                if check[0] - 1 == i and check[3] == 1:
-                    print("{:.2f}".format(check[4]), end="         ")
-        print("\nWaktu Selesai Produk 1   : ", end="")
-        for j in range(len(resultMatrix)):
-            for k in range(len(resultMatrix[j])):
-                check = resultMatrix[j][k]
-                if check[0] - 1 == i and check[3] == 1:
-                    print("{:.2f}".format(check[6]), end="         ")
-        print("\nWaktu Mulai Produk 2     : ", end="")
-        for j in range(len(resultMatrix)):
-            for k in range(len(resultMatrix[j])):
-                check = resultMatrix[j][k]
-                if check[0] - 1 == i and check[3] == 2:
-                    print("{:.2f}".format(check[5]), end="         ")
-        print("\nWaktu Proses Produk 2    : ", end="")
-        for j in range(len(resultMatrix)):
-            for k in range(len(resultMatrix[j])):
-                check = resultMatrix[j][k]
-                if check[0] - 1 == i and check[3] == 2:
-                    print("{:.2f}".format(check[4]), end="         ")
-        print("\nWaktu Selesai Produk 2   : ", end="")
-        for j in range(len(resultMatrix)):
-            for k in range(len(resultMatrix[j])):
-                check = resultMatrix[j][k]
-                if check[0] - 1 == i and check[3] == 2:
-                    print("{:.2f}".format(check[6]), end="        ")
-        min = 10000000000
-        for j in range(2):
-            x = maxCTAktualStat[i]
-            if x < min:
-                min = x
-        print("\nCycle time               :", min)
-        maxCT.append(min)
-
+if (checkFeasible) :
     print()
-    print("Cycle time solusi terbaik adalah ", end="")
-    maximumCT = maxCT[0]
-    for i in range(1, len(maxCT)):
-        if (maximumCT < maxCT[i]):
-            maximumCT = maxCT[i]
-    print(maximumCT)
+    for data in locationNotFeasible:
+        print(f"Solusi tidak feasible saat iterasi {data[0]+1} koloni {data[1]+1}")
+    print("Solusi Tidak Feasible karena stasiun sudah terisi sepenuhnya\n")
+
+printInfoAnswer(iter, kol)
+
+# for i in range(len(resultMatrix)):
+#     for j in range(len(resultMatrix[0])):
+#         print(resultMatrix[i][j])
+
+for i in range(nStation):
     print()
-    print("Waktu untuk run program: {} detik".format(endTime-startTime))
-else:
-    print("\nSolusi Tidak Feasible karena stasiun sudah terisi sepenuhnya\n")
+    print("========== STASIUN {} ==========".format(i+1))
+    print("Task                     : ", end="")
+    for task in visitedStation[i]:
+        temp = task[0]
+        print("Task " + str(temp) + " ", end="     ")
+    print("\nResource                 : ", end="")
+    for task in visitedStation[i]:
+        temp = task[1]
+        print("Worker " + str(temp) + " ", end="   ")
+    print("\nWaktu Mulai Produk 1     : ", end="")
+    for j in range(len(resultMatrix)):
+        for k in range(len(resultMatrix[j])):
+            check = resultMatrix[j][k]
+            if check[0] - 1 == i and check[3] == 1:
+                print("{:.2f}".format(check[5]), end="         ")
+    print("\nWaktu Proses Produk 1    : ", end="")
+    for j in range(len(resultMatrix)):
+        for k in range(len(resultMatrix[j])):
+            check = resultMatrix[j][k]
+            if check[0] - 1 == i and check[3] == 1:
+                print("{:.2f}".format(check[4]), end="         ")
+    print("\nWaktu Selesai Produk 1   : ", end="")
+    for j in range(len(resultMatrix)):
+        for k in range(len(resultMatrix[j])):
+            check = resultMatrix[j][k]
+            if check[0] - 1 == i and check[3] == 1:
+                print("{:.2f}".format(check[6]), end="         ")
+    print("\nWaktu Mulai Produk 2     : ", end="")
+    for j in range(len(resultMatrix)):
+        for k in range(len(resultMatrix[j])):
+            check = resultMatrix[j][k]
+            if check[0] - 1 == i and check[3] == 2:
+                print("{:.2f}".format(check[5]), end="         ")
+    print("\nWaktu Proses Produk 2    : ", end="")
+    for j in range(len(resultMatrix)):
+        for k in range(len(resultMatrix[j])):
+            check = resultMatrix[j][k]
+            if check[0] - 1 == i and check[3] == 2:
+                print("{:.2f}".format(check[4]), end="         ")
+    print("\nWaktu Selesai Produk 2   : ", end="")
+    for j in range(len(resultMatrix)):
+        for k in range(len(resultMatrix[j])):
+            check = resultMatrix[j][k]
+            if check[0] - 1 == i and check[3] == 2:
+                print("{:.2f}".format(check[6]), end="        ")
+    min = 10000000000
+    for j in range(2):
+        x = maxCTAktualStat[i]
+        if x < min:
+            min = x
+    print("\nCycle time               :", min)
+    maxCT.append(min)
+
+print()
+print("Cycle time solusi terbaik adalah ", end="")
+maximumCT = maxCT[0]
+for i in range(1, len(maxCT)):
+    if (maximumCT < maxCT[i]):
+        maximumCT = maxCT[i]
+print(maximumCT)
+print()
+print("Waktu untuk run program: {} detik".format(endTime-startTime))
