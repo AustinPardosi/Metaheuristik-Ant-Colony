@@ -648,10 +648,15 @@ printInfoAnswer(iter, kol)
 #     for j in range(len(resultMatrix[0])):
 #         print(resultMatrix[i][j])
 
+ctProduct1 = []	
+ctProduct2 = []
+
 for i in range(nStation):
     print()
     print("========== STASIUN {} ==========".format(i+1))
     print("Task                     : ", end="")
+    tempCTProduct1 = 0	
+    tempCTProduct2 = 0
     for task in visitedStation[i]:
         temp = task[0]
         print("Task " + str(temp) + " ", end="     ")
@@ -677,6 +682,11 @@ for i in range(nStation):
             check = resultMatrix[j][k]
             if check[0] - 1 == i and check[3] == 1:
                 print("{:.2f}".format(check[6]), end="         ")
+                if(tempCTProduct1 < check[6]):	
+                    tempCTProduct1 = check[6]	
+    print("\nCycle Time Produk 1      : ", end="")	
+    print("{:.2f}".format(tempCTProduct1), end="         ")	
+    ctProduct1.append(tempCTProduct1)
     print("\nWaktu Mulai Produk 2     : ", end="")
     for j in range(len(resultMatrix)):
         for k in range(len(resultMatrix[j])):
@@ -695,20 +705,36 @@ for i in range(nStation):
             check = resultMatrix[j][k]
             if check[0] - 1 == i and check[3] == 2:
                 print("{:.2f}".format(check[6]), end="        ")
+                if(tempCTProduct2 < check[6]):	
+                    tempCTProduct2 = check[6]	
+    print("\nCycle Time Produk 2      : ", end="")	
+    print("{:.2f}".format(tempCTProduct2), end="         ")	
+    ctProduct2.append(tempCTProduct2)	
+    print()
     min = 10000000000
     for j in range(2):
         x = maxCTAktualStat[i]
         if x < min:
             min = x
-    print("\nCycle time               :", min)
+    #print("\nCycle time               :", min)
     maxCT.append(min)
 
 print()
 print("Cycle time solusi terbaik adalah ", end="")
-maximumCT = maxCT[0]
-for i in range(1, len(maxCT)):
-    if (maximumCT < maxCT[i]):
-        maximumCT = maxCT[i]
-print(maximumCT)
+maxCtProduct1 = 0	
+for data in ctProduct1:	
+    if data > maxCtProduct1:	
+        maxCtProduct1 = data	
+maxCtProduct2 = 0	
+for data in ctProduct1:	
+    if data > maxCtProduct2:	
+        maxCtProduct2 = data	
+resultCT = maxCtProduct1 * 0.6 + maxCtProduct2 * 0.4	
+print(resultCT)        	
+# maximumCT = maxCT[0]	
+# for i in range(1, len(maxCT)):	
+#     if (maximumCT < maxCT[i]):	
+#         maximumCT = maxCT[i]	
+# print(maximumCT)
 print()
 print("Waktu untuk run program: {} detik".format(endTime-startTime))
