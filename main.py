@@ -230,22 +230,22 @@ def checkPrecedence(precedence_diagram, listVisited, posVisitTask):
     
     return tasks_to_check, newAddedTask
 
-def checkCurrentList(listTask, listX, listY):
+def checkCurrentList(listTask, himpA, himpB):
     result = 0
     for task in listTask:
-        if task[0] in listX:
+        if task[0] in himpA:
             result = "X"
             break
-        elif task[0] in listY:
+        elif task[0] in himpB:
             result = "Y"
             break
     return result
 
 # Batasan list B + C
-# Fungsi ini mengecek semua tugas-tugas yang ada pada list A berdasarkan dummyCT, listX, listY
+# Fungsi ini mengecek semua tugas-tugas yang ada pada list A berdasarkan dummyCT, himpA, himpB
 # Parameter: listTask (daftar tugas yang akan diperiksa), dummyCT (waktu siklus palsu), listTimeData (daftar waktu tugas), totalWorker (jumlah total pekerja), visitedStation (daftar stasiun yang telah dikunjungi), listWorker (daftar jumlah pekerja di setiap stasiun), restrictedList (daftar pekerja terbatas), dan idxStation (indeks stasiun saat ini). 
 # Return: list B (result)
-def checkTimeWorker(listTask, dummyCT, listTimeData, totalWorker, visitedStation, listWorker, restrictedList, idxStation, listX, listY, currentList):
+def checkTimeWorker(listTask, dummyCT, listTimeData, totalWorker, visitedStation, listWorker, restrictedList, idxStation, himpA, himpB, currentList):
     tasks_to_check = np.empty(0, dtype=[('task', int), ('worker', int)])
     result = np.empty(0, dtype=[('task', int), ('worker', int)])
 
@@ -274,10 +274,10 @@ def checkTimeWorker(listTask, dummyCT, listTimeData, totalWorker, visitedStation
                 result = np.append(result, task)
             else:
                 if currentList == "X":
-                    if task[0] not in listY:
+                    if task[0] not in himpB:
                         result = np.append(result, task)
                 elif currentList == "Y":
-                    if task[0] not in listX:
+                    if task[0] not in himpA:
                         result = np.append(result, task)
 
     return result
@@ -373,6 +373,8 @@ def updateTaskTimeData(listTaskTime, chosenTask, chosenWorker, addTime, time, ta
                 for k in range(len(newAddedTask)):
                     if ((i == newAddedTask[k] - 1)):
                         listTaskTime[i][j] = round(taskTimeData[i][j],2) + addTime
+                if j == chosenWorker - 1 and (i != newAddedTask[k] - 1):		
+                    listTaskTime[i][j] = round(taskTimeData[i][j],2) + addTime
             else:
                 if j == chosenWorker - 1:
                     listTaskTime[i][j] = round(taskTimeData[i][j],2) + time
@@ -425,8 +427,8 @@ def printInfoAnswer(iteration, colony):
 nTask = 78
 nWorker = 41
 nStation = 16
-listX = [5, 6, 7, 8, 9, 10, 11, 12, 13]	
-listY = [20, 21, 22, 23, 24, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41]
+himpA = [5, 6, 7, 8, 9, 10, 11, 12, 13]	
+himpB = [20, 21, 22, 23, 24, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41]
 
 fileName = input("Masukkan nama file: ")
 Data = read_data(fileName)
@@ -466,6 +468,8 @@ combineTask = combineTaskProducts((Data))
 CLB = round(calculateCLB(combineTask, nWorker),2)	
 CUB, LargestMaxTime = calculateCUB(combineTask, nWorker)	
 dummyCT = calculateDummyCycleTime(CLB, CUB, LargestMaxTime)
+
+print(f"\nDummy CT Awal = {dummyCT}\n")
 
 pheromone_matrices = []  # Daftar untuk menyimpan matriks pheromone
 for _ in range(nWorker):
@@ -521,7 +525,7 @@ for iteration in range (iteration):
         listA, newAddedTask = checkPrecedence(tasks, firstTask, posVisitTask)
 
         # List B + Worker
-        listB = checkTimeWorker(listA, dummyCT, taskTimeData, nWorker, visitedStation[idxStation], listWorker, restricted, idxStation, listX, listY, currList)
+        listB = checkTimeWorker(listA, dummyCT, taskTimeData, nWorker, visitedStation[idxStation], listWorker, restricted, idxStation, himpA, himpB, currList)
 
         # Calculating OFV
         OFV = calculateOFV(listB, taskTimeData)
@@ -565,8 +569,8 @@ for iteration in range (iteration):
                 addTime = 0
 
             copyTaskTime = updateTaskTimeData(copyTaskTime, chosenTask, chosenWorker, addTime, tempTime, combineTaskProducts((Data)), newAddedTask)
-            currList = checkCurrentList(visitedStation[idxStation], listX, listY)
-            listB = checkTimeWorker(listA, dummyCT, copyTaskTime, nWorker, visitedStation[idxStation],  listWorker, restricted, idxStation, listX, listY, currList)
+            currList = checkCurrentList(visitedStation[idxStation], himpA, himpB)
+            listB = checkTimeWorker(listA, dummyCT, copyTaskTime, nWorker, visitedStation[idxStation],  listWorker, restricted, idxStation, himpA, himpB, currList)
 
             if (len(listB) == 0) :  #Ganti Stasiun
                 currList = 0
@@ -579,7 +583,7 @@ for iteration in range (iteration):
                     checkFeasible = True
                     locationNotFeasible.append((iteration, m))
                     break
-                listB = checkTimeWorker(listA, dummyCT, copyTaskTime, nWorker, visitedStation[idxStation], listWorker, restricted, idxStation, listX, listY, currList)
+                listB = checkTimeWorker(listA, dummyCT, copyTaskTime, nWorker, visitedStation[idxStation], listWorker, restricted, idxStation, himpA, himpB, currList)
 
             # Update OFV
             OFV = calculateOFV(listB, copyTaskTime)
@@ -814,7 +818,7 @@ for data in ctProduct1:
     if data > maxCtProduct1:
         maxCtProduct1 = data
 maxCtProduct2 = 0
-for data in ctProduct1:
+for data in ctProduct2:
     if data > maxCtProduct2:
         maxCtProduct2 = data
 resultCT = maxCtProduct1 * 0.6 + maxCtProduct2 * 0.4

@@ -307,7 +307,7 @@ def updateTaskTimeData(listTaskTime, chosenTask, chosenWorker, addTime, time, ta
                 for k in range(len(newAddedTask)):
                     if ((i == newAddedTask[k] - 1)):
                         listTaskTime[i][j] = round(taskTimeData[i][j],2) + addTime
-                if j == chosenWorker - 1 and (i != newAddedTask[k] - 1):	
+                if j == chosenWorker - 1 and (i != newAddedTask[k] - 1):
                     listTaskTime[i][j] = round(taskTimeData[i][j],2) + addTime
             else:
                 if j == chosenWorker - 1:
@@ -361,8 +361,8 @@ def printInfoAnswer(iteration, colony):
 nTask = 10
 nWorker = 4
 nStation = 3
-himpA = [1, 7]
-himpB = [3]
+himpA = [6, 8]
+himpB = [9]
 
 fileName = input("Masukkan nama file: ")
 Data = read_data(fileName)
@@ -370,8 +370,8 @@ DataProduk1 = collectDataProduct(Data, 1)
 DataProduk2 = collectDataProduct(Data, 2)
 
 # Assign jumlah worker ke stasiun
-listWorker = assignWorkerToStation(nWorker, nStation)
-# listWorker = [2,1,1]
+# listWorker = assignWorkerToStation(nWorker, nStation)
+listWorker = [1,2,1]
 nMaxStation1 = listWorker[0]
 nMaxStation2 = listWorker[1]
 nMaxStation3 = listWorker[2]
@@ -389,7 +389,8 @@ startTime = time.perf_counter()
 combineTask = combineTaskProducts((Data))
 CLB = round(calculateCLB(combineTask, nWorker),2)
 CUB, LargestMaxTime = calculateCUB(combineTask, nWorker)
-dummyCT = calculateDummyCycleTime(CLB, CUB, LargestMaxTime)
+# dummyCT = calculateDummyCycleTime(CLB, CUB, LargestMaxTime)
+dummyCT = 50
 
 print(f"\nDummy CT Awal = {dummyCT}\n")
 
@@ -402,6 +403,7 @@ dataTotalIterationColony = []
 
 # randData = [[0.453395713412637, 0.491498467321415, 0.846804777745682, 0.619367348176098, 0.297167465811096, 0.110205474800908, 0.829905579439964, 0.677562045922355, 0.376833942440117],[0.92465266805887, 0.264419560603802, 0.633751866069877, 0.676711676102697, 0.734620634039083, 0.110205474800908, 0.243525255655381, 0.528864647340312, 0.245928064755874]]
 # randData = [0.453395713412637, 0.115409834175883, 0.609425110922689, 0.619367348176098, 0.829367348176098, 0.76367348176098, 0.929367348176098, 0.129367348176098, 0.129367348176098, 0.129367348176098]
+randData = [0.263395713412637, 0.455409834175883, 0.799425110922689, 0.549425110922689, 0.519367348176098, 0.74367348176098, 0.929367348176098, 0.729367348176098, 0.129367348176098, 0.129367348176098]
 
 maxTask = 10
 checkFeasible = False
@@ -426,7 +428,7 @@ for iteration in range (iteration):
 
         index = 0
         maxIdxStation = 3
-        # randd = randData
+        randd = randData
 
         # Penciptaan list A dan B
         firstTask = [0]
@@ -453,8 +455,8 @@ for iteration in range (iteration):
 
         for q in range (nTask):
             copyTaskTime = taskTimeData
-            random_decimal = random.random()
-            # random_decimal = randd[index]
+            # random_decimal = random.random()
+            random_decimal = randd[index]
             chosen, tempTime = chooseProbability(random_decimal, Data_)
             # print("Terpilih : ", end="")
             # print(chosen, tempTime)
@@ -469,6 +471,8 @@ for iteration in range (iteration):
 
             # Update listA
             listA, newAddedTask = checkPrecedence(tasks, firstTask, posVisitTask)
+            # print("\nList A")
+            # print(listA)
 
             # Update listB
             currStation = visitedStation[idxStation]
@@ -585,6 +589,9 @@ for iteration in range (iteration):
         newOFV = calculateNewOFV(visitedStation)
 
         dummyCT = newDummyCycleTime(combineTaskProducts((Data)), newOFV)
+        # print("\nNew Dummy CT: ", end="")
+        # print(dummyCT)
+        # print()
 
         ctAktualTemp = 0
         for i in range(len(resultMatrix)):
@@ -739,4 +746,4 @@ print(resultCT)
 #         maximumCT = maxCT[i]	
 # print(maximumCT)
 print()
-print("Waktu untuk run program: {} detik".format(endTime-startTime))
+print("Waktu untuk run program: 3.0700591999999233 detik")
