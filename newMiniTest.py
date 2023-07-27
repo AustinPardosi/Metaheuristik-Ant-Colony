@@ -229,10 +229,33 @@ def calculateUpperProbability(zAlpha, zBeta, OFV, q, pheromone_matrices, idxWork
 # Fungsi ini menghitung nilai fungsi tujuan (OFV) berdasarkan daftar B (listB) dan data waktu tugas (taskTimeData)
 # Parameter: listB yang berisi daftar tugas dan taskTimeData yang berisi data waktu tugas
 # Return: daftar nilai OFV yang sesuai dengan elemen dalam listB
-def calculateOFV(listB, taskTimeData):
+# def calculateOFV(listB, taskTimeData):
+#     OFV = []
+#     for taskTime in listB:
+#         currTime = taskTimeData[taskTime[0] - 1][taskTime[1] - 1] 
+#         OFV.append(currTime)
+#     return OFV
+
+# def combineTaskProducts(listTask):
+#     rows = len(listTask) // 2
+#     cols = len(listTask[0])
+#     result = [[0] * cols for i in range(rows)]
+
+#     for i in range(rows):
+#         for j in range(cols):
+#             result[i][j] = round(0.6 * float(listTask[2*i][j]) + 0.4 * float(listTask[2*i+1][j]), 2)
+    
+#     return result
+
+def calculateOFV(listB, listTask, endTimeProduct1, endTimeProduct2):
     OFV = []
+    print(listB)
     for taskTime in listB:
-        currTime = taskTimeData[taskTime[0] - 1][taskTime[1] - 1] 
+        # print()
+        # print("Sebelumnya")
+        # print(float(listTask[2*(taskTime[0]-1)][taskTime[1]-1]), endTimeProduct1, float(listTask[2*(taskTime[0]-1)+1][taskTime[1]-1]), endTimeProduct2)
+        currTime = round( 0.6 * (float(listTask[2*(taskTime[0]-1)][taskTime[1]-1]) + endTimeProduct1)  + 0.4 * (float(listTask[2*(taskTime[0]-1)+1][taskTime[1]-1]) + endTimeProduct2), 2 )
+        # print(taskTime, currTime)
         OFV.append(currTime)
     return OFV
 
@@ -312,6 +335,24 @@ def updateTaskTimeData(listTaskTime, chosenTask, chosenWorker, addTime, time, ta
             else:
                 if j == chosenWorker - 1:
                     listTaskTime[i][j] = round(taskTimeData[i][j],2) + time
+    return listTaskTime
+
+def updateTotalData(listTaskTime, chosenTask, chosenWorker, addTime, time, taskTimeData, newAddedTask):
+    for i in range(len(listTaskTime)):
+        for j in range(len(listTaskTime[0])):
+            if (len(newAddedTask) != 0) :
+                for k in range(len(newAddedTask)):
+                    if ((i == newAddedTask[k] - 1)):
+                        listTaskTime[i][j] = round(float(taskTimeData[i][j]),2) + addTime
+                if j == chosenWorker - 1 and (i != newAddedTask[k] - 1):
+                    listTaskTime[i][j] = round(float(taskTimeData[i][j]),2) + addTime
+            else:
+                if j == chosenWorker - 1:
+                    # print("Awal")
+                    # print(listTaskTime[i][j])
+                    listTaskTime[i][j] = round(float(taskTimeData[i][j]),2) + time
+                    # print("Akhir")
+                    # print(i+1, j+1, time, listTaskTime[i][j])
     return listTaskTime
 
 # Fungsi ini mendata task-task persyaratan dari task yang baru dtg	
@@ -436,13 +477,17 @@ for iteration in range (iteration):
         idxStation = 0
         restricted = []
         
+        endTimeProduct1 = 0
+        endTimeProduct2 = 0
+
         listA, newAddedTask = checkPrecedence(tasks, firstTask, posVisitTask)
 
         # List B + Worker
         listB = checkTimeWorker(listA, dummyCT, taskTimeData, nWorker, visitedStation[idxStation], listWorker, restricted, idxStation, himpA, himpB, currList)
 
         # Calculating OFV
-        OFV = calculateOFV(listB, taskTimeData)
+        # OFV = calculateOFV(listB, taskTimeData)
+        OFV = calculateOFV(listB, Data, endTimeProduct1, endTimeProduct2)
 
         # Calculating prob
         Prob = calculateProb(listB, zAlfa, zBeta, 0, pheromone_matrices)
@@ -453,15 +498,43 @@ for iteration in range (iteration):
         # Saving Data
         Data_ = saveData(listB, OFV, Prob, Cumulative)
 
+    # for i in range(len(listTaskTime)):
+    #     for j in range(len(listTaskTime[0])):
+    #         if (len(newAddedTask) != 0) :
+    #             for k in range(len(newAddedTask)):
+    #                 if ((i == newAddedTask[k] - 1)):
+    #                     listTaskTime[i][j] = round(float(taskTimeData[i][j]),2) + addTime
+    #             if j == chosenWorker - 1 and (i != newAddedTask[k] - 1):
+    #                 listTaskTime[i][j] = round(float(taskTimeData[i][j]),2) + addTime
+    #         else:
+    #             if j == chosenWorker - 1:
+    #                 listTaskTime[i][j] = round(float(taskTimeData[i][j]),2) + time
+    #                 print(time)
+
+    # for taskTime in listB:
+    #     currTime = round(0.6 * (float(listTask[2*(taskTime[0]-1)][taskTime[1]-1]) + endTimeProduct1) + 0.4 * (float(listTask[2*(taskTime[0]-1)+1][taskTime[1]-1]) + endTimeProduct2), 2)
+        print(Data)
+        print()
         for q in range (nTask):
             copyTaskTime = taskTimeData
+            copyTotalData = Data
             # random_decimal = random.random()
             random_decimal = randd[index]
             chosen, tempTime = chooseProbability(random_decimal, Data_)
-            # print("Terpilih : ", end="")
-            # print(chosen, tempTime)
+            print("Terpilih : ", end="")
+            print(chosen, tempTime)
             chosenTask = chosen[0]
             chosenWorker = chosen[1]
+            originData = read_data(fileName)
+            print("\nEndTime Sebelumnya: ")
+            print(endTimeProduct1, endTimeProduct2)
+            # print(Data)
+            # print()
+            print("EndTime Yang Mau Ditambah: ")
+            print(float(originData[2*(chosenTask-1)][chosenWorker-1]), float(originData[2*(chosenTask-1)+1][chosenWorker-1]))
+            print()
+            endTimeProduct1 += round(float(originData[2*(chosenTask-1)][chosenWorker-1]),2)
+            endTimeProduct2 += round(float(originData[2*(chosenTask-1)+1][chosenWorker-1]),2)
             firstTask.append(chosenTask)
             visitedStation[idxStation].append((chosenTask, chosenWorker, tempTime))
 
@@ -486,12 +559,20 @@ for iteration in range (iteration):
                 addTime = 0
 
             copyTaskTime = updateTaskTimeData(copyTaskTime, chosenTask, chosenWorker, addTime, tempTime, combineTaskProducts((Data)), newAddedTask)
+            originData = read_data(fileName)
+            copyTotalData = updateTotalData(copyTotalData, chosenTask, chosenWorker, addTime, tempTime, originData, newAddedTask)
             currList = checkCurrentList(visitedStation[idxStation], himpA, himpB)
             listB = checkTimeWorker(listA, dummyCT, copyTaskTime, nWorker, visitedStation[idxStation],  listWorker, restricted, idxStation, himpA, himpB, currList)
+            print()
+            print(listA)
+            print(copyTaskTime)
+            print()
             if (len(listB) == 0) :  #Ganti Stasiun
+                print("*******Ganti Stasiun*********")
                 currList = 0
                 idxStation += 1
                 copyTaskTime = combineTaskProducts((Data))
+                copyTotalData = Data
                 restrictedList = restrictedWorker(visitedStation, idxStation)
                 for worker in restrictedList:
                     restricted.append(worker)
@@ -505,7 +586,13 @@ for iteration in range (iteration):
             # print()
 
             # Update OFV
-            OFV = calculateOFV(listB, copyTaskTime)
+            # OFV = calculateOFV(listB, copyTaskTime)
+            print(copyTotalData)
+            OFV = calculateOFV(listB, originData, endTimeProduct1, endTimeProduct2)
+            print("\nListB = ")
+            print(listB)
+            print("OFV = ")
+            print(OFV)
 
             # Update Prob
             Prob = calculateProb(listB, zAlfa, zBeta, q+1, pheromone_matrices)

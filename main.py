@@ -295,6 +295,12 @@ def calculateUpperProbability(zAlpha, zBeta, OFV, q, pheromone_matrices, idxWork
 # Fungsi ini menghitung nilai fungsi tujuan (OFV) berdasarkan daftar B (listB) dan data waktu tugas (taskTimeData)
 # Parameter: listB yang berisi daftar tugas dan taskTimeData yang berisi data waktu tugas
 # Return: daftar nilai OFV yang sesuai dengan elemen dalam listB
+# def calculateOFV(listB, taskTimeData):
+#     OFV = []
+#     for taskTime in listB:
+#         currTime = taskTimeData[taskTime[0] - 1][taskTime[1] - 1] 
+#         OFV.append(currTime)
+#     return OFV
 def calculateOFV(listB, taskTimeData):
     OFV = []
     for taskTime in listB:
