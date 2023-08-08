@@ -227,8 +227,6 @@ def calculateOFV(precedence_diagram, listB, listTask, endTimeProducts, visitedSt
     OFV = []
     # print(endTimeProducts)
     # print(visitedStation)
-    maxTempTime1 = 0
-    maxTempTime2 = 0
     tempTime11 = 0
     tempTime22 = 0
     for taskTime in listB:
@@ -465,7 +463,7 @@ printInfoWorker(listWorker)
 
 # Tetapkan parameter
 colony = int(input("Masukkan jumlah koloni: "))
-iteration = int(input("Masukkan jumlah iterasi: "))
+iteration_ = int(input("Masukkan jumlah iterasi: "))
 globalFeromon = float(input("Masukkan jumlah global feromon: "))
 zAlfa = float(input("Masukkan nilai zAlfa: "))
 zBeta = float(input("Masukkan nilai zBeta: "))
@@ -493,7 +491,7 @@ maxTask = 10
 checkFeasible = False
 locationNotFeasible = []
 
-for iteration in range (iteration):
+for iteration in range (iteration_):
     for m in range (colony):
         # Combine task time for 2 produk
         taskTimeData = combineTaskProducts((Data))
@@ -513,7 +511,7 @@ for iteration in range (iteration):
         index = 0
         maxIdxStation = 3
         # randd = randData
-
+        
         # Penciptaan list A dan B
         firstTask = [0]
         posVisitTask = [0,1,2,3,7,9]
@@ -752,9 +750,42 @@ restrictedResult = []
 for data in locationNotFeasible:
     restrictedResult.append((data[0],data[1]))
 
+# Update CT Aktual dengan rumus baru
+TotalCT1 = []
+TotalCT2 = []
+for data in dataTotalIterationColony:
+    tempTotalCTProduct1 = 0
+    tempTotalCTProduct2 = 0
+    resultMatrix = data[4]
+    for j in range(len(resultMatrix)):
+        for k in range(len(resultMatrix[j])):
+            check = resultMatrix[j][k]
+            if check[3] == 1:
+                if(tempTotalCTProduct1 < check[6]):
+                    tempTotalCTProduct1 = check[6]
+    TotalCT1.append(tempTotalCTProduct1)
+    for j in range(len(resultMatrix)):
+        for k in range(len(resultMatrix[j])):
+            check = resultMatrix[j][k]
+            if check[3] == 2:
+                if(tempTotalCTProduct2 < check[6]):
+                    tempTotalCTProduct2 = check[6]
+    TotalCT2.append(tempTotalCTProduct2)
+
+idxCT = 0
+idxDataFound = 0
+minData = float('inf')
+for idxIter in range (iteration_):
+    for m in range (colony):
+        tempResultCT = TotalCT1[idxCT] * 0.6 + TotalCT2[idxCT] * 0.4
+        if (minData > tempResultCT):
+            minData = tempResultCT
+            idxDataFound = idxCT
+        idxCT += 1
+
 for i, data in enumerate(dataTotalIterationColony):
     if ((data[0],data[1])) not in restrictedResult:
-        if (data[6] < min):
+        if (i == idxDataFound):
             idxHasil = i
             min = data[6]
 
@@ -871,3 +902,30 @@ print(resultCT)
 # print(maximumCT)
 print()
 print("Waktu untuk run program: {} detik".format(endTime-startTime))
+
+# Cetak hasil Cycle Time dari setiap iterasi dan koloni
+print("\n========== HASIL CT AKTUAL TIAP ITERASI DAN KOLONI ==========")
+
+idxCT1 = 0
+idxCT2 = 0
+for idxIter in range (iteration_):
+    for m in range (colony):
+        tempResultCT = TotalCT1[idxCT1] * 0.6 + TotalCT2[idxCT2] * 0.4
+        print("Iterasi {}, Koloni {}: CT Aktual = {:.2f}".format(idxIter+1, m+1, tempResultCT))
+        idxCT1 += 1
+        idxCT2 += 1
+
+print()
+idxCT1 = 0
+idxCT2 = 0
+tempResultCTBest = float('inf')
+for idxIter in range (iteration_):
+    for m in range (colony):
+        tempResultCT = TotalCT1[idxCT1] * 0.6 + TotalCT2[idxCT2] * 0.4
+        if (tempResultCT> tempResultCTBest):
+            tempResultCT = tempResultCTBest
+        else:
+            tempResultCTBest = tempResultCT
+        print("Iterasi {}, Koloni {}: CT Aktual = {:.2f}".format(idxIter+1, m+1, tempResultCT))
+        idxCT1 += 1
+        idxCT2 += 1
