@@ -7,85 +7,14 @@ import numpy as np
 # tasks merupakan sebuah precedence diagram dimana berisi informasi tentang ketergantungan antara tugas-tugas.
 # Key dalam dictionary tasks merepresentasikan nomor tugas, sedangkan nilai dalam dictionary tersebut adalah daftar nomor tugas sebelumnya yang harus selesai sebelum tugas tersebut dapat dimulai.
 tasks = {
-    0: [],
+    0: [],              # Tidak ada tugas sebelumnya untuk tugas 0
     1: [0],
     2: [0],
-    3: [0],
-    4: [0],
-    5: [1, 2, 3, 4],
+    3: [1, 2],
+    4: [3],
+    5: [0],
     6: [5],
-    7: [5],
-    8: [6, 7],
-    9: [8],
-    10: [9],
-    11: [10],
-    12: [11],
-    13: [12],
-    14: [0],
-    15: [14],
-    16: [15],
-    17: [16],
-    18: [17],
-    19: [0],
-    20: [18, 19],
-    21: [20],
-    22: [21],
-    23: [21],
-    24: [22, 23],
-    25: [0],
-    26: [24, 25],
-    27: [26],
-    28: [27],
-    29: [28],
-    30: [29],
-    31: [24],
-    32: [31],
-    33: [32],
-    34: [32],
-    35: [33, 34],
-    36: [35],
-    37: [30, 36],
-    38: [37],
-    39: [38],
-    40: [39],
-    41: [40],
-    42: [13, 41],
-    43: [42],
-    44: [42],
-    45: [43, 44],
-    46: [45],
-    47: [46],
-    48: [47],
-    49: [48],
-    50: [49],
-    51: [50],
-    52: [51],
-    53: [50],
-    54: [50],
-    55: [53, 54],
-    56: [55],
-    57: [56],
-    58: [56],
-    59: [56],
-    60: [56],
-    61: [0],
-    62: [57, 58, 59, 60],
-    63: [0],
-    64: [56, 61, 63],
-    65: [52, 64],
-    66: [65],
-    67: [62],
-    68: [67, 69],
-    69: [66],
-    70: [68],
-    71: [70],
-    72: [68],
-    73: [68],
-    74: [68],
-    75: [68],
-    76: [68],
-    77: [68],
-    78: [71, 72, 73, 74, 75, 76, 77],
+    7: [4, 6],
 }
 
 # ========== READ DATA FROM CSV ==========
@@ -110,9 +39,11 @@ def collectDataProduct(listTask, idx):
     rows = len(listTask) // 2
     cols = len(listTask[0])
     result = [[0] * cols for i in range(rows)]
+
     for i in range(rows):
         for j in range(cols):
             result[i][j] = round(float(listTask[2*i+(idx-1)][j]), 2)
+
     return result
 
 # Fungsi ini menggabungkan waktu tugas untuk 2 produk.
@@ -125,7 +56,7 @@ def combineTaskProducts(listTask):
 
     for i in range(rows):
         for j in range(cols):
-            result[i][j] = round((100/150) * float(listTask[2*i][j]) + (50/150) * float(listTask[2*i+1][j]), 2)
+            result[i][j] = round(0.6 * float(listTask[2*i][j]) + 0.4 * float(listTask[2*i+1][j]), 2)
 
     return result
 
@@ -232,16 +163,11 @@ def checkTimeWorker(listTask, dummyCT, listTimeData, totalWorker, visitedStation
         for i in range(totalWorker):
             time = listTimeData[task-1][i]
             if time <= dummyCT:
-                # print("&&", task, i+1, time)
                 inp = (task, i+1)
-                # print(inp)
                 for j, step in enumerate(listTemporary):
                     if (task == step[0] and i+1 == step[1]):
                         if (OFV[j] <= dummyCT):
                             tasks_to_check = np.concatenate((tasks_to_check, np.array([inp], dtype=tasks_to_check.dtype)))
-                    #     print("HLO", task, step[0], j+1, step[1], OFV[j])
-                    # else:
-                    #     print("Not FOund")
 
     # Menghitung banyak worker yang telah tercipta di masing-masing stasiun
     uniqWorkerStation = []
@@ -289,18 +215,8 @@ def calculateUpperProbability(zAlpha, zBeta, OFV, q, pheromone_matrices, idxWork
 # Fungsi ini menghitung nilai fungsi tujuan (OFV) berdasarkan daftar B (listB) dan data waktu tugas (taskTimeData)
 # Parameter: listB yang berisi daftar tugas dan taskTimeData yang berisi data waktu tugas
 # Return: daftar nilai OFV yang sesuai dengan elemen dalam listB
-# def calculateOFV(listB, taskTimeData):
-#     OFV = []
-#     for taskTime in listB:
-#         currTime = taskTimeData[taskTime[0] - 1][taskTime[1] - 1]
-#         OFV.append(currTime)
-#     return OFV
 def calculateOFV(precedence_diagram, listB, listTask, endTimeProducts, visitedStation):
     OFV = []
-    # print(endTimeProducts)
-    # print(visitedStation)
-    maxTempTime1 = 0
-    maxTempTime2 = 0
     tempTime11 = 0
     tempTime22 = 0
     for taskTime in listB:
@@ -310,18 +226,15 @@ def calculateOFV(precedence_diagram, listB, listTask, endTimeProducts, visitedSt
                 if (item == data[0]):
                     tempTime11 = data[3]
                     tempTime22 = data[4]
-
         for i in range(len(endTimeProducts)):
             for j in range(len(endTimeProducts[0])):
                 if (i == 0 and j == taskTime[1]-1):
                     endTimeProduct1 = max(endTimeProducts[i][j], tempTime11)
                 elif (i == 1 and j == taskTime[1]-1):
                     endTimeProduct2 = max(endTimeProducts[i][j], tempTime22)
-        #print("===", float(listTask[2*(taskTime[0]-1)][taskTime[1]-1]), endTimeProduct1, float(listTask[2*(taskTime[0]-1)+1][taskTime[1]-1]), endTimeProduct2)
         currTime = round( 0.6 * (float(listTask[2*(taskTime[0]-1)][taskTime[1]-1]) + endTimeProduct1)  + 0.4 * (float(listTask[2*(taskTime[0]-1)+1][taskTime[1]-1]) + endTimeProduct2), 2 )
         OFV.append(currTime)
     return OFV
-
 
 def calculateNewOFV(visitedStation):
     maxOFV = 0
@@ -365,12 +278,10 @@ def calculateCumulative(Prob):
 
 # Fungsi ini menyimpan data-data terkait daftar B (listB), OFV, probabilitas, dan nilai kumulatif dalam sebuah struktur data
 # Parameter: daftar B (listB), OFV, probabilitas, dan nilai kumulatif
-# Return: sebuah list data yang menyimpan informasi diatas
+# Return:
 def saveData(listB, OFV, Prob, Cumulative, DummyCT):
     Data_ = []
-    # print("HOR", OFV)
     for i in range(len(listB)):
-        # if (OFV[i] <= DummyCT):
         Data_.append((listB[i],OFV[i], Prob[i], Cumulative[i]))
     return Data_
 
@@ -380,7 +291,6 @@ def saveData(listB, OFV, Prob, Cumulative, DummyCT):
 def chooseProbability(random, listData, combineTaskData):
     chosen = None
     for data in listData:
-        # print("^", data)
         diff = random - data[3]
         chosen = data
         if diff < 0:
@@ -471,8 +381,8 @@ def updateEndTimeProduct(presedence_diagram, visitedStation, beforeProducts, ori
             if(i == 1 and j == chosenWorker-1):
                 addedTimeProduct2 = max(beforeProducts[i][j], maxTempTime2)
                 beforeProducts[i][j] = float(originData[2*(chosenTask-1)+1][chosenWorker-1]) + addedTimeProduct2
-    # print(addedTimeProduct1, addedTimeProduct2)
     return beforeProducts, addedTimeProduct1, addedTimeProduct2
+
 
 # Fungsi ini mendata task-task persyaratan dari task yang baru dtg
 # Parameter: list_of_tasks (list task yang baru datang), tasks(precedence diagram)
@@ -489,9 +399,13 @@ def searchConditionList(list_of_tasks, tasks):
 # Return: nilai OFV max
 def searchMaxTime(currStation, conditionList):
     max = 0
+    # print("\nCurrStation: ")
+    # print(currStation)
+    # print(conditionList)
     for info in currStation:
         if ((info[0] in conditionList) and (info[2] > max)):
             max = info[2]
+    # print(max)
     return max
 
 # Fungsi ini mendata seluruh worker yang telah dipakai di dalam stasiun yang telah diisi
@@ -518,11 +432,11 @@ def printInfoAnswer(iteration, colony):
     print()
 
 # Constant
-nTask = 78
-nWorker = 41
-nStation = 16
-himpA = [5, 6, 7, 8, 9, 10, 11, 12, 13]
-himpB = [20, 21, 22, 23, 24, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41]
+nTask = 7
+nWorker = 3
+nStation = 2
+himpA = [6, 8]
+himpB = [9]
 
 fileName = input("Masukkan nama file: ")
 Data = read_data(fileName)
@@ -531,22 +445,10 @@ DataProduk2 = collectDataProduct(Data, 2)
 
 # Assign jumlah worker ke stasiun
 listWorker = assignWorkerToStation(nWorker, nStation)
+# listWorker = [1,2,1]
 nMaxStation1 = listWorker[0]
 nMaxStation2 = listWorker[1]
-nMaxStation3 = listWorker[2]
-nMaxStation4 = listWorker[3]
-nMaxStation5 = listWorker[4]
-nMaxStation6 = listWorker[5]
-nMaxStation7 = listWorker[6]
-nMaxStation8 = listWorker[7]
-nMaxStation9 = listWorker[8]
-nMaxStation10 = listWorker[9]
-nMaxStation11 = listWorker[10]
-nMaxStation12 = listWorker[11]
-nMaxStation13 = listWorker[12]
-nMaxStation14 = listWorker[13]
-nMaxStation15 = listWorker[14]
-nMaxStation16 = listWorker[15]
+# nMaxStation3 = listWorker[2]
 printInfoWorker(listWorker)
 
 # Tetapkan parameter
@@ -562,6 +464,7 @@ combineTask = combineTaskProducts((Data))
 CLB = round(calculateCLB(combineTask, nWorker),2)
 CUB, LargestMaxTime = calculateCUB(combineTask, nWorker)
 dummyCT = calculateDummyCycleTime(CLB, CUB)
+# dummyCT = 50
 
 print(f"\nDummy CT Awal = {dummyCT}\n")
 
@@ -571,49 +474,37 @@ for _ in range(nWorker):
     pheromone_matrices.append(pheromone)
 
 dataTotalIterationColony = []
+
 # randData = [[0.453395713412637, 0.491498467321415, 0.846804777745682, 0.619367348176098, 0.297167465811096, 0.110205474800908, 0.829905579439964, 0.677562045922355, 0.376833942440117],[0.92465266805887, 0.264419560603802, 0.633751866069877, 0.676711676102697, 0.734620634039083, 0.110205474800908, 0.243525255655381, 0.528864647340312, 0.245928064755874]]
-maxTask = 78
+# randData = [0.453395713412637, 0.115409834175883, 0.609425110922689, 0.619367348176098, 0.829367348176098, 0.76367348176098, 0.929367348176098, 0.129367348176098, 0.129367348176098, 0.129367348176098]
+randData = [0.263395713412637, 0.455409834175883, 0.799425110922689, 0.549425110922689, 0.899425110922689, 0.449425110922689, 0.899425110922689, 0.449425110922689, 0.929367348176098, 0.729367348176098]
+
+maxTask = 7
 checkFeasible = False
 locationNotFeasible = []
-maxIdxStation = 16
 
 for iteration in range (iteration):
     for m in range (colony):
-        print("Dummt CT =", dummyCT)
         # Combine task time for 2 produk
         taskTimeData = combineTaskProducts((Data))
-
         currList = 0
 
-        # List Station 1, 2, 3, .., 16
+        # List Station 1, 2
         Station1 = []
         Station2 = []
-        Station3 = []
-        Station4 = []
-        Station5 = []
-        Station6 = []
-        Station7 = []
-        Station8 = []
-        Station9 = []
-        Station10 = []
-        Station11 = []
-        Station12 = []
-        Station13 = []
-        Station14 = []
-        Station15 = []
-        Station16 = []
 
-        visitedStation = [Station1, Station2, Station3, Station4, Station5, Station6, Station7, Station8, Station9, Station10, Station11, Station12, Station13, Station14, Station15, Station16]
+        visitedStation = [Station1, Station2]
 
         # Buat matriks kosong
         resultMatrix = []
 
         index = 0
-        # randd = randData[m]
+        maxIdxStation = 2
+        randd = randData
 
-	    # Penciptaan list A dan B
+        # Penciptaan list A dan B
         firstTask = [0]
-        posVisitTask = [0,1,2,3,4,14,19,25,61,63]
+        posVisitTask = [0,1,2,5]
         idxStation = 0
         restricted = []
 
@@ -626,10 +517,7 @@ for iteration in range (iteration):
             for i in range(nWorker):
                 inp = (data, i+1)
                 listTemporary = np.concatenate((listTemporary, np.array([inp], dtype=listTemporary.dtype)))
-        # print("*LIST C: ")
-        # print(listTemporary)
         tempoOFV = calculateOFV(tasks, listTemporary, read_data(fileName), endTimeProducts, visitedStation[idxStation])
-        # print(OFV)
 
         # List B + Worker
         listB = checkTimeWorker(listA, dummyCT, taskTimeData, nWorker, visitedStation[idxStation], listWorker, restricted, idxStation, himpA, himpB, currList, tempoOFV, listTemporary)
@@ -655,10 +543,6 @@ for iteration in range (iteration):
             originData = read_data(fileName)
             Data = read_data(fileName)
             chosen, tempTime = chooseProbability(random_decimal,  Data_, combineTaskProducts((Data)))
-            # print("\n***Terpilih : ", end="")
-            # print(chosen, tempTime)
-            # print(listB)
-            # print(OFV)
             if (tempTime == float('inf')):
                 listB = []
             else:
@@ -679,8 +563,6 @@ for iteration in range (iteration):
 
                 # Update listA
                 listA, newAddedTask = checkPrecedence(tasks, firstTask, posVisitTask)
-                # print("\nList A")
-                # print(listA)
 
                 # Update listB
                 currStation = visitedStation[idxStation]
@@ -697,24 +579,15 @@ for iteration in range (iteration):
                 originData = read_data(fileName)
                 copyTotalData = updateTotalData(copyTotalData, chosenTask, chosenWorker, addTime, tempTime, originData, newAddedTask)
                 currList = checkCurrentList(visitedStation[idxStation], himpA, himpB)
-                # print("\nCopy Task Time: ")
-                # print(listA)
-                # print(copyTaskTime)
-                # print()
-                # print()
                 listTemporary = np.empty(0, dtype=[('task', int), ('worker', int)])
                 for data in listA:
                     for i in range(nWorker):
                         inp = (data, i+1)
                         listTemporary = np.concatenate((listTemporary, np.array([inp], dtype=listTemporary.dtype)))
-                # print("*LIST C: ")
-                # print(listTemporary)
                 tempoOFV = calculateOFV(tasks, listTemporary, originData, endTimeProducts, visitedStation[idxStation])
-                # print(OFV)
                 listB = checkTimeWorker(listA, dummyCT, copyTaskTime, nWorker, visitedStation[idxStation],  listWorker, restricted, idxStation, himpA, himpB, currList, tempoOFV, listTemporary)
                 OFV = calculateOFV(tasks, listB, originData, endTimeProducts, visitedStation[idxStation])
-                # print(copyTaskTime)
-                # print()
+
             if (len(listB) == 0) :  #Ganti Stasiun
                 # print("*******Ganti Stasiun*********")
                 endTimeProducts = [[0 for j in range(nWorker)] for i in range(2)]
@@ -742,18 +615,6 @@ for iteration in range (iteration):
                 # print(OFV)
                 listB = checkTimeWorker(listA, dummyCT, copyTaskTime, nWorker, visitedStation[idxStation], listWorker, restricted, idxStation, himpA, himpB, currList, tempoOFV, listTemporary)
                 OFV = calculateOFV(tasks, listB, originData, endTimeProducts, visitedStation[idxStation])
-            # print("List B: ")
-            # print(listB)
-            # print()
-
-            # Update OFV
-            # OFV = calculateOFV(listB, copyTaskTime)
-            # print(copyTotalData)
-            # print("LOOO", visitedStation[idxStation])
-            # print("\nListB = ")
-            # print(listB)
-            # print("OFV = ")
-            # print(OFV)
 
             # Update Prob
             Prob = calculateProb(listB, zAlfa, zBeta, q+1, pheromone_matrices)
@@ -763,15 +624,13 @@ for iteration in range (iteration):
 
             # Update Data
             Data_ = saveData(listB, OFV, Prob, Cumulative, dummyCT)
-            # print("\nData: ")
-            # print(Data_)
-
             index += 1
-
+        # print("\n****",timeValue)
         # Mengisi result matrix
         tempIdx = 0
         productTime = []
-        while tempIdx < 16:
+        # print("\nVisited", visitedStation)
+        while tempIdx < 2:
             row = []  # Membuat objek row baru di setiap iterasi
             stat = visitedStation[tempIdx]
             dataAwal = combineTaskProducts(Data)
@@ -789,7 +648,7 @@ for iteration in range (iteration):
                         waktuProses = round(DataProduk2[tempTask - 1][tempWorker - 1], 4)
                         waktuSelesai = task[4]
                         waktuMulai = waktuSelesai - waktuProses
-                    # Checking if there is exist in prouctTime
+                    # Checking if there is exist
                     found = False
                     idxData = -1
                     for idx, data in enumerate(productTime):
@@ -803,7 +662,12 @@ for iteration in range (iteration):
                     # else:
                     #     waktuMulai = 0.0
                     #     productTime.append((tempWorker, tempProduct, waktuProses))
+
                     # waktuSelesai = waktuMulai + waktuProses
+
+
+                    # waktuSelesai = round(task[2], 4)
+                    # waktuMulai = round(waktuSelesai - waktuProses, 4)
                     row.append((statKerja, tempTask, tempWorker, tempProduct, waktuProses, waktuMulai, waktuSelesai))
             tempIdx += 1
             resultMatrix.append(row)
@@ -830,7 +694,7 @@ for iteration in range (iteration):
 
         for row_idx, row in enumerate(visitedStation):
             for col_idx, value in enumerate(row):
-                dataStation.append((indexx, value[0], value[1]))  # Kolom, Baris, Worker(Pheromone ke brp)
+                dataStation.append((indexx, value[0], value[1]))    # Kolom, Baris, Worker(Pheromone ke brp)
                 indexx += 1
 
         for i, pheromone in enumerate(pheromone_matrices):
@@ -863,13 +727,6 @@ for iteration in range (iteration):
                         pheromone[infoDataStation[1]-1][infoDataStation[0]-1] -= globalFeromon
 
 endTime = time.perf_counter()
-
-# Print Pheromone Terakhir
-# for i, pheromone in enumerate(pheromone_matrices):
-#     print(f"Matriks Pheromone-{i+1}:")
-#     print(pheromone)
-#     print()
-
 
 # ----------------------------------------------------------------------------------
 # Print Hasil
@@ -910,8 +767,10 @@ printInfoAnswer(iter, kol)
 # for i in range(len(resultMatrix)):
 #     for j in range(len(resultMatrix[0])):
 #         print(resultMatrix[i][j])
+
 ctProduct1 = []
 ctProduct2 = []
+
 for i in range(nStation):
     print()
     print("========== STASIUN {} ==========".format(i+1))
@@ -977,7 +836,7 @@ for i in range(nStation):
         x = maxCTAktualStat[i]
         if x < min:
             min = x
-    # print("\nCycle time               :", min)
+    #print("\nCycle time               :", min)
     maxCT.append(min)
 
 print()
@@ -998,4 +857,4 @@ print(resultCT)
 #         maximumCT = maxCT[i]
 # print(maximumCT)
 print()
-print("Waktu untuk run program: {} detik".format(endTime-startTime))
+print("Waktu untuk run program: 3.0700591999999233 detik")
